@@ -34,11 +34,6 @@ def Two_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, verbose = False)
     
     centered = results - original_mean_diff
     
-    def varName(p):
-        "Return name of the variable as a string"
-        for k, v in globals().items():
-            if id(p) == id(v):
-            return k
     p_val = np.sum(centered > abs(original_mean_diff)) + np.sum(centered < -abs(original_mean_diff))
     p_val /= M
     
@@ -223,3 +218,9 @@ def Cohen_D(data1, data2):
     d = (mean1 - mean2) / ((std1**2 + std2**2)/2)**.5
     
     return abs(d)
+
+def varName(p):
+    "Return name of the variable as a string"
+    for k, v in globals().items():
+        if id(p) == id(v):
+            return k
