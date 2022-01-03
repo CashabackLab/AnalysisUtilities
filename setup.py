@@ -7,7 +7,7 @@ setup(
     author='CashabackLab',
     author_email='cashabacklab@gmail.com',
     # Needed to actually package something
-    packages=['custom_statistics'],
+    packages=['analysis_utilities'],
     # Needed for dependencies
     install_requires=['numpy', 'numba', 'scipy'],
     # *strongly* suggested for sharing
