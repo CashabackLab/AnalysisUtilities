@@ -9,7 +9,7 @@ setup(
     # Needed to actually package something
     packages=['statistics'],
     # Needed for dependencies
-    install_requires=['numpy', 'numba', 'scipy', 'warnings'],
+    install_requires=['numpy', 'numba', 'scipy'],
     # *strongly* suggested for sharing
     version='0.1',
     # The license can be anything you like
