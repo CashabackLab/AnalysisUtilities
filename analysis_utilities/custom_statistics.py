@@ -218,9 +218,3 @@ def Cohen_D(data1, data2):
     d = (mean1 - mean2) / ((std1**2 + std2**2)/2)**.5
     
     return abs(d)
-
-def varName(p):
-    "Return name of the variable as a string"
-    for k, v in globals().items():
-        if id(p) == id(v):
-            return k
