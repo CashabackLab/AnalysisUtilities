@@ -13,7 +13,7 @@ setup(
     # *strongly* suggested for sharing
     version='0.1',
     # The license can be anything you like
-    license='UD',
+    license='MIT',
     description='Python package for analyzing human kinematic data, tailored for the Cashaback Lab',
     long_description=open('README.md').read(),
 )
