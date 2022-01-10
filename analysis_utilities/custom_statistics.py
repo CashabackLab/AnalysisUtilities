@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Sep 27 12:58:31 2021
+
+@author: adam1
+"""
+#from Custom_Package import custom_stats_package as csp
 
 from tqdm.notebook import tqdm
 import numpy as np
@@ -18,22 +25,30 @@ def Two_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, verbose = False)
     assert data1.shape == data2.shape
     results = np.empty(M) * np.nan
     data_len = data1.shape[0]
+    pooled_data = np.empty(data1.shape[0] + data2.shape[0]) * np.nan
+    pooled_data[:data1.shape[0]] = data1
+    pooled_data[data1.shape[0]:] = data2
     
     if paired:
         paired_diff = data1 - data2
-        original_mean_diff = np.nanmean(paired_diff)
         for i in tqdm(range(M)):
             results[i] = np.nanmean(rng.choice(paired_diff, size = data_len, replace = True))
     else:
-        original_mean_diff = np.nanmean(data1) - np.nanmean(data2)
         for i in tqdm(range(M)):
-            data1_resample = rng.choice(data1, size = data_len, replace = True)
-            data2_resample = rng.choice(data2, size = data_len, replace = True)
+            tmp = rng.choice(pooled_data, size = data_len*2, replace = False)
+            data1_resample = tmp[:data_len]
+            data2_resample = tmp[data_len:]
             mean_diff = np.nanmean(data1_resample) - np.nanmean(data2_resample)
             results[i] = mean_diff
     
-    centered = results - original_mean_diff
-    
+    if paired: 
+        paired_diff = data1 - data2
+        original_mean_diff = np.nanmean(paired_diff)
+        centered = results - original_mean_diff
+    else: 
+        original_mean_diff = np.nanmean(data1) - np.nanmean(data2)
+        centered = results
+        
     p_val = np.sum(centered > abs(original_mean_diff)) + np.sum(centered < -abs(original_mean_diff))
     p_val /= M
     
@@ -50,21 +65,31 @@ def NB_Two_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, verbose = Fal
     # assert data1.shape == data2.shape
     results = np.empty(M) * np.nan
     data_len = data1.shape[0]
-    
+    pooled_data = np.empty(data1.shape[0] + data2.shape[0]) * np.nan
+    pooled_data[:data1.shape[0]] = data1
+    pooled_data[data1.shape[0]:] = data2
+    original_mean_diff = -1
+
     if paired:
         paired_diff = data1 - data2
-        original_mean_diff = np.nanmean(paired_diff)
         for i in nb.prange(M):
             results[i] = np.nanmean(rng.choice(paired_diff, size = data_len, replace = True))
-    else:
-        original_mean_diff = np.nanmean(data1) - np.nanmean(data2)
-        for i in nb.prange(M):
-            data1_resample = rng.choice(data1, size = data_len, replace = True)
-            data2_resample = rng.choice(data2, size = data_len, replace = True)
+    else:        
+        for i in range(M): #cannot be parallelized
+            tmp = rng.choice(pooled_data, size = data_len*2, replace = False)
+            data1_resample = tmp[:data_len]
+            data2_resample = tmp[data_len:]
             mean_diff = np.nanmean(data1_resample) - np.nanmean(data2_resample)
             results[i] = mean_diff
     
-    centered = results - original_mean_diff
+    if paired: 
+        paired_diff = data1 - data2
+        original_mean_diff = np.nanmean(paired_diff)
+        centered = results - original_mean_diff
+    else: 
+        original_mean_diff = np.nanmean(data1) - np.nanmean(data2)
+        centered = results
+    
     p_val = np.sum(centered > abs(original_mean_diff)) + np.sum(centered < -abs(original_mean_diff))
     p_val /= M
     
@@ -77,8 +102,7 @@ def One_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, direction = "les
     rng = np.random.default_rng()
     
     if paired:
-        if direction == "lesser": paired_diff = data1 - data2 
-        elif direction == "greater": paired_diff = data2 - data1
+        paired_diff = data1 - data2
 
         for i in tqdm(range(M)):
             diff_resampled = rng.choice(paired_diff, size = len(paired_diff), replace = True)
@@ -89,12 +113,11 @@ def One_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, direction = "les
             data1_resampled = rng.choice(data1, size = len(data1), replace = True)
             data2_resampled = rng.choice(data2, size = len(data2), replace = True)
 
-            if direction == "lesser": diff = data1_resampled - data2_resampled 
-            elif direction == "greater": diff = data2_resampled - data1_resampled 
-        
+            diff = data1_resampled - data2_resampled
             test_results[i] = np.nanmean(diff)
             
-    p_val = np.sum(test_results < 0) / M
+    if direction == "lesser": p_val = np.sum(test_results < 0) / M
+    else : p_val = np.sum(test_results > 0) / M
     
     if verbose:
         return test_results, p_val
@@ -109,9 +132,7 @@ def NB_One_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, direction = "
     rng = np.random
     
     if paired:
-        if direction == "lesser": paired_diff = data1 - data2 
-        elif direction == "greater": paired_diff = data2 - data1
-
+        paired_diff = data1 - data2
         for i in nb.prange(M):
             diff_resampled = rng.choice(paired_diff, size = len(paired_diff), replace = True)
 
@@ -121,15 +142,14 @@ def NB_One_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, direction = "
             data1_resampled = rng.choice(data1, size = len(data1), replace = True)
             data2_resampled = rng.choice(data2, size = len(data2), replace = True)
 
-            if direction == "lesser": diff = data1_resampled - data2_resampled 
-            elif direction == "greater": diff = data2_resampled - data1_resampled 
-        
+            diff = data1_resampled - data2_resampled 
             test_results[i] = np.nanmean(diff)
             
-    p_val = np.sum(test_results < 0) / M
-    
+    if direction == "lesser": p_val = np.sum(test_results < 0) / M
+    else : p_val = np.sum(test_results > 0) / M
 
     return p_val
+    
 
 def Bootstrap(data1, data2, M = 1e4, paired = False, direction = None, verbose = False):
     """ Bootstrap difference in means between two groups.
@@ -139,12 +159,12 @@ def Bootstrap(data1, data2, M = 1e4, paired = False, direction = None, verbose =
     if verbose = True, returns distribution and p_value, shows progress bar
     if not verbose, only returns p-value, suppresses progress bar and uses numba"""
     if not verbose:
-        if direction is None:
+        if direction == None or direction == "two-tailed":
             return NB_Two_Tailed_Bootstrap(data1, data2, M = M, paired = paired, verbose = verbose)
         else:
             return NB_One_Tailed_Bootstrap(data1, data2, M = M, paired = paired, direction = direction,  verbose = verbose)
     else:
-        if direction is None:
+        if direction == None or direction == "two-tailed":
             return Two_Tailed_Bootstrap(data1, data2, M = M, paired = paired, verbose = verbose)
         else:
             return One_Tailed_Bootstrap(data1, data2, M = M, paired = paired, direction = direction,  verbose = verbose)
