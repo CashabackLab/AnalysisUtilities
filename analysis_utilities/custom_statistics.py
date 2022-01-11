@@ -238,3 +238,42 @@ def Cohen_D(data1, data2):
     d = (mean1 - mean2) / ((std1**2 + std2**2)/2)**.5
     
     return abs(d)
+
+def Common_Language_EF_One_Sample(data, mu):
+    total = 0
+    for x in data:
+        if x > mu:
+            total+= 1
+        elif x == mu:
+            total += .5
+        else:
+            total += 0
+    return total / len(data)
+
+def Common_Language_EF_Two_Sample(data1, data2):
+    total = 0
+    for x in data1:
+        for y in data2:
+            if x > y:
+                total += 1
+            elif x == y:
+                total += .5
+            else:
+                total += 0
+    return total / (len(data1) * len(data2))
+
+def CLES(data1, data2, sample = "one sample", alt_comparison = 0):
+    """
+    Computes the common language effect size for the given data
+    if one sample, data2 should be treated as a single number, mu, the mean to compare the data to
+    if two sample, uses both inputs as data arrays
+    if paired, computes paired difference then compares to 0 (can be changed using alt_comparison keyword)
+    """
+    if sample.lower() == "one sample":
+        #treat data2 as mu for comparisons
+        return Common_Language_EF_One_Sample(data1, data2)
+    elif sample.lower() == "two sample":
+        return Common_Language_EF_Two_Sample(data1, data2)
+    elif sample.lower() == "paired":
+        data = np.array(data1) - np.array(data2)
+        return Common_Language_EF_One_Sample(data, alt_comparison)
