@@ -21,7 +21,7 @@ warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 def Two_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, verbose = False):
     M = int(M)
     rng = default_rng()
-    data1, data2 = np.array(data1), np.array(data2)
+    #data1, data2 = np.array(data1), np.array(data2)
     assert data1.shape == data2.shape
     results = np.empty(M) * np.nan
     data_len = data1.shape[0]
@@ -61,7 +61,7 @@ def Two_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, verbose = False)
 def NB_Two_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, verbose = False):
     M = int(M)
     rng = np.random
-    data1, data2 = np.array(data1), np.array(data2)
+    #data1, data2 = np.array(data1), np.array(data2)
     # assert data1.shape == data2.shape
     results = np.empty(M) * np.nan
     data_len = data1.shape[0]
@@ -97,7 +97,7 @@ def NB_Two_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, verbose = Fal
 
 def One_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, direction = "lesser", verbose = False):
     M = int(M)
-    data1, data2 = np.array(data1), np.array(data2)
+    #data1, data2 = np.array(data1), np.array(data2)
     test_results = np.zeros(M) * np.nan
     rng = np.random.default_rng()
     
@@ -127,7 +127,7 @@ def One_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, direction = "les
 @njit(parallel = True)
 def NB_One_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, direction = "lesser", verbose = False):
     M = int(M)
-    data1, data2 = np.array(data1), np.array(data2)
+    #data1, data2 = np.array(data1), np.array(data2)
     test_results = np.zeros(M) * np.nan
     rng = np.random
     
@@ -158,6 +158,7 @@ def Bootstrap(data1, data2, M = 1e4, paired = False, direction = None, verbose =
     direction = {"greater", "lesser", None} 
     if verbose = True, returns distribution and p_value, shows progress bar
     if not verbose, only returns p-value, suppresses progress bar and uses numba"""
+    data1, data2 = np.array(data1), np.array(data2)
     if not verbose:
         if direction == None or direction == "two-tailed":
             return NB_Two_Tailed_Bootstrap(data1, data2, M = M, paired = paired, verbose = verbose)
