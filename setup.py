@@ -11,7 +11,7 @@ setup(
     # Needed for dependencies
     install_requires=['numpy', 'numba', 'scipy', 'tqdm'],
     # *strongly* suggested for sharing
-    version='0.2.2',
+    version='0.3.0',
     # The license can be anything you like
     license='MIT',
     description='Python package for analyzing human kinematic data, tailored for the Cashaback Lab',
