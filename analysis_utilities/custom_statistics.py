@@ -266,9 +266,9 @@ def Common_Language_EF_Two_Sample(data1, data2):
 def CLES(data1, data2, sample = "one sample", alt_comparison = 0):
     """
     Computes the common language effect size for the given data
-    if one sample, data2 should be treated as a single number, mu, the mean to compare the data to
-    if two sample, uses both inputs as data arrays
-    if paired, computes paired difference then compares to 0 (can be changed using alt_comparison keyword)
+    if sample = "one sample", data2 should be treated as a single number, mu, the mean to compare the data to
+    if sample = "two sample", uses both inputs as data arrays
+    if sample = "paired", computes paired difference then compares to 0 (can be changed using alt_comparison keyword)
     """
     if sample.lower() == "one sample":
         #treat data2 as mu for comparisons
