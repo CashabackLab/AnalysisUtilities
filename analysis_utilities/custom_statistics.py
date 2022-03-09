@@ -272,9 +272,9 @@ def CLES(data1, data2, sample = "one sample", alt_comparison = 0):
     """
     if sample.lower() == "one sample":
         #treat data2 as mu for comparisons
-        return Common_Language_EF_One_Sample(data1, data2)
+        return Common_Language_EF_One_Sample(data1, data2)*100
     elif sample.lower() == "two sample":
-        return Common_Language_EF_Two_Sample(data1, data2)
+        return Common_Language_EF_Two_Sample(data1, data2) *100
     elif sample.lower() == "paired":
         data = np.array(data1) - np.array(data2)
-        return Common_Language_EF_One_Sample(data, alt_comparison)
+        return Common_Language_EF_One_Sample(data, alt_comparison) *100
