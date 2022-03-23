@@ -7,3 +7,4 @@ from .Grubbs import *
 from .Linear_fit import *
 from .CLES import *
 from .Cohen_D import *
+from .holmbonferroni_correction import *
