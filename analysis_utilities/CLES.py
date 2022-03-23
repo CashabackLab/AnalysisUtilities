@@ -30,11 +30,11 @@ def CLES(data1, data2, paired = False, sample = "one sample", alt_comparison = 0
     if sample = "two sample", uses both inputs as data arrays
     if sample = "paired", computes paired difference then compares to 0 (can be changed using alt_comparison keyword)
     """
-    if sample.lower() == "one sample":
+    if sample.lower() == "one sample" and paired == False:
         #treat data2 as mu for comparisons
         return Common_Language_EF_One_Sample(data1, data2)*100
-    elif sample.lower() == "two sample":
+    elif sample.lower() == "two sample" and paired == False:
         return Common_Language_EF_Two_Sample(data1, data2) *100
-    elif sample.lower() == "paired" or paired = True:
+    elif sample.lower() == "paired" or paired == True:
         data = np.array(data1) - np.array(data2)
         return Common_Language_EF_One_Sample(data, alt_comparison) *100
