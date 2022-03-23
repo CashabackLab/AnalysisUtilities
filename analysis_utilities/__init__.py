@@ -4,7 +4,7 @@
 
 from .Bootstrap import *
 from .Grubbs import *
-from .Linear_fit import *
+from .Linear_Fit import *
 from .CLES import *
 from .Cohen_D import *
 from .holmbonferroni_correction import *
