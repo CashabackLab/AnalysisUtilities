@@ -27,7 +27,7 @@ def _Two_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, verbose = False
             results[i] = np.nanmean(rng.choice(paired_diff, size = data_len, replace = True))
     else:
         for i in tqdm(range(M)):
-            tmp = rng.choice(pooled_data, size = data_len*2, replace = False)
+            tmp = rng.choice(pooled_data, size = len(pooled_data), replace = False)
             data1_resample = tmp[:data_len]
             data2_resample = tmp[data_len:]
             mean_diff = np.nanmean(data1_resample) - np.nanmean(data2_resample)
@@ -68,7 +68,7 @@ def _NB_Two_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, verbose = Fa
             results[i] = np.nanmean(rng.choice(paired_diff, size = data_len, replace = True))
     else:        
         for i in range(M): #cannot be parallelized
-            tmp = rng.choice(pooled_data, size = data_len*2, replace = False)
+            tmp = rng.choice(pooled_data, size = len(pooled_data), replace = False)
             data1_resample = tmp[:data_len]
             data2_resample = tmp[data_len:]
             mean_diff = np.nanmean(data1_resample) - np.nanmean(data2_resample)
