@@ -105,8 +105,8 @@ def _One_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, direction = "le
             data1_resampled = rng.choice(data1, size = len(data1), replace = True)
             data2_resampled = rng.choice(data2, size = len(data2), replace = True)
 
-            diff = data1_resampled - data2_resampled
-            test_results[i] = np.nanmean(diff)
+            diff = np.nanmean(data1_resampled) - np.nanmean(data2_resampled)
+            test_results[i] = diff
             
     if direction == "lesser": p_val = np.sum(test_results < 0) / M
     else : p_val = np.sum(test_results > 0) / M
@@ -134,8 +134,8 @@ def _NB_One_Tailed_Bootstrap(data1, data2, M = 1e4, paired = False, direction = 
             data1_resampled = rng.choice(data1, size = len(data1), replace = True)
             data2_resampled = rng.choice(data2, size = len(data2), replace = True)
 
-            diff = data1_resampled - data2_resampled 
-            test_results[i] = np.nanmean(diff)
+            diff = np.nanmean(data1_resampled) - np.nanmean(data2_resampled)
+            test_results[i] = diff
             
     if direction == "lesser": p_val = np.sum(test_results < 0) / M
     else : p_val = np.sum(test_results > 0) / M
