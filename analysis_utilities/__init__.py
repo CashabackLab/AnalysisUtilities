@@ -9,4 +9,4 @@ from .CLES import *
 from .Cohen_D import *
 from .holmbonferroni_correction import *
 
-__version__ = "0.3.5"
+__version__ = "0.3.6"
