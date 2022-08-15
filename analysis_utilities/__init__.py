@@ -8,3 +8,5 @@ from .Linear_Fit import *
 from .CLES import *
 from .Cohen_D import *
 from .holmbonferroni_correction import *
+
+__version__ = "0.3.5"
