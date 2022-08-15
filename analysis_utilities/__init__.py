@@ -2,11 +2,11 @@
 #from . import custom_statistics
 # from.custom_statistics import *
 
-from .Bootstrap import *
+from .Bootstrap import Bootstrap
 from .Grubbs import *
 from .Linear_Fit import *
 from .CLES import *
 from .Cohen_D import *
 from .holmbonferroni_correction import *
 
-__version__ = "0.3.6"
+__version__ = "0.4.0"
