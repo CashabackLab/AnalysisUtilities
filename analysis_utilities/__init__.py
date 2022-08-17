@@ -4,11 +4,12 @@
 
 from .stats.Bootstrap import Bootstrap
 from .stats.Grubbs import Grubbs
-from .Linear_Fit import Linear_Fit
 from .stats.CLES import CLES
 from .stats.Cohen_D import Cohen_D
 from .stats.holmbonferroni_correction import holmbonferroni_correction
-from .stats.remove_nans import remove_nans
+
+from .Linear_Fit import Linear_Fit
+from .remove_nans import remove_nans
 
 # import .roth_utilities
 __version__ = "0.4.2"
