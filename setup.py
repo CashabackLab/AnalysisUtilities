@@ -7,11 +7,11 @@ setup(
     author='CashabackLab',
     author_email='cashabacklab@gmail.com',
     # Needed to actually package something
-    packages=['analysis_utilities'],
+    packages=['analysis_utilities, roth_utilities'],
     # Needed for dependencies
     install_requires=['numpy', 'numba', 'scipy', 'tqdm'],
     # *strongly* suggested for sharing
-    version='0.4.5',
+    version='0.4.6',
     # The license can be anything you like
     license='MIT',
     description='Python package for analyzing human kinematic data, tailored for the Cashaback Lab',
