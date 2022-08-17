@@ -8,5 +8,5 @@ from .Linear_Fit import *
 from .CLES import *
 from .Cohen_D import *
 from .holmbonferroni_correction import *
-
-__version__ = "0.4.0"
+from .remove_nans import remove_nans
+__version__ = "0.4.1"
