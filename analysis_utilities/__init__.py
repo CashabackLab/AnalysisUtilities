@@ -9,4 +9,6 @@ from .CLES import *
 from .Cohen_D import *
 from .holmbonferroni_correction import *
 from .remove_nans import remove_nans
+
+import roth_utilities
 __version__ = "0.4.2"
