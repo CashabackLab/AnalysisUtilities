@@ -106,7 +106,6 @@ class Exploration_Subject:
         #translate to u, v coords
         #u == relevant
         u_pos, v_pos = np.zeros(N), np.zeros(N)
-        init_angle = Target_Table['Target_Rotation'][1] * math.pi / 180 #convert to radians
 
         for i in range(N):    
             u_pos[i] =  x_pos[i] * math.cos(init_angle) + y_pos[i] * math.sin(init_angle)
