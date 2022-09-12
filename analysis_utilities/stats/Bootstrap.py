@@ -64,7 +64,7 @@ def Bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", 
     """ Bootstrap difference in means between two groups.
     M = float64 # Number of iterations
     paired = {True, False}
-    alternative = {"two-sided", "greater", "less"}
+    alternative = {"two-sided", "greater", "less"} #relative to data1, i.e.: data1 "greater" than data2
     return_distribution {True, False} #returns the bootstrapped distribution
     
     ##Legacy code for backwards compatability. Do not reccomend usage.
