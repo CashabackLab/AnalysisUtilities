@@ -12,4 +12,4 @@ from .Linear_Fit import Linear_Fit
 from .remove_nans import remove_nans
 
 #import .roth_utilities
-__version__ = "0.4.11"
+__version__ = "0.4.12"
