@@ -21,27 +21,10 @@ class Exploration_Subject:
         3 trial back/RPE analysis of variability (Exp Conditions Only)
     
     """
-    u_pos = dict()
-    v_pos = dict()
-    
-    reward_history = dict()
-    reward_delta_hand_u_pos = dict()
-    reward_delta_target_u_pos = dict()
-    reward_delta_hand_v_pos = dict()
-    reward_delta_target_v_pos = dict()
-    
-    lag1_aim, lag1_extent = dict(), dict()
-    iqr_aim, iqr_extent = dict(), dict()
-    
-    aim_variability, extent_variability             = dict(), dict()
-    aim_hit_variability, aim_miss_variability       = dict(), dict()
-    extent_hit_variability, extent_miss_variability = dict(), dict()
-    
-    aim_rpe_analysis, extent_rpe_analysis = dict(), dict()
-    
-    save_path = ""
-    
+        
     def __init__(self, ID, Baseline, Washout, Condition_Dict, Target_Table, Condition_Order, **kwargs):
+        self._init_attributes()
+
         self.ID = ID
         self.Condition_Dict = Condition_Dict
         self.Target_Table = Target_Table.dropna()
@@ -88,6 +71,27 @@ class Exploration_Subject:
         
         ### End __init__
         
+    def _init_attributes(self):
+        self.u_pos = dict()
+        self.v_pos = dict()
+
+        self.reward_history = dict()
+        self.reward_delta_hand_u_pos = dict()
+        self.reward_delta_target_u_pos = dict()
+        self.reward_delta_hand_v_pos = dict()
+        self.reward_delta_target_v_pos = dict()
+
+        self.lag1_aim, self.lag1_extent = dict(), dict()
+        self.iqr_aim, self.iqr_extent = dict(), dict()
+
+        self.aim_variability, self.extent_variability             = dict(), dict()
+        self.aim_hit_variability, self.aim_miss_variability       = dict(), dict()
+        self.extent_hit_variability, self.extent_miss_variability = dict(), dict()
+
+        self.aim_rpe_analysis, self.extent_rpe_analysis = dict(), dict()
+
+        self.save_path = ""
+        
     def calc_uv(self, Condition):
         N = len(Condition)
         x_pos, y_pos = np.zeros(N)*np.nan, np.zeros(N)*np.nan
@@ -106,6 +110,7 @@ class Exploration_Subject:
         #translate to u, v coords
         #u == relevant
         u_pos, v_pos = np.zeros(N), np.zeros(N)
+        init_angle = self.Target_Table['Target_Rotation'][1] * math.pi / 180 #convert to radians
 
         for i in range(N):    
             u_pos[i] =  x_pos[i] * math.cos(init_angle) + y_pos[i] * math.sin(init_angle)
@@ -302,3 +307,4 @@ class Exploration_Subject:
         y2 = arr[:n-lag]
         corr = np.corrcoef(y1, y2)[0, 1]
         return corr
+    
