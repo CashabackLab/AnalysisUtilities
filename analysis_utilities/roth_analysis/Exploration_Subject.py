@@ -4,6 +4,7 @@ import numpy as np
 import numba as nb
 import math 
 import pickle 
+from scipy.special import erfinv
 
 class Exploration_Subject:
     """
@@ -268,6 +269,12 @@ class Exploration_Subject:
             
         self.aim_rpe_analysis[condition] = temp_aim_rpe_analysis
         self.extent_rpe_analysis[condition] = temp_extent_rpe_analysis
+        
+    def get_target_width(self, success_rate):
+        return self.aim_variability["Baseline"] * (2**.5) * (erfinv(success_rate) - erfinv(-success_rate))
+    
+    def get_target_length(self, success_rate):
+        return self.extent_variability["Baseline"] * (2**.5) * (erfinv(success_rate) - erfinv(-success_rate))
     #####################################################################################################################
     def __eq__(self, x):
         return self.ID == x
