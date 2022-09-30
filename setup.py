@@ -1,5 +1,13 @@
 from setuptools import setup
+import re
+import ast
 
+#Only change __version__ in analysis_utilities/__init__.py file
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
+
+with open('analysis_utilities/__init__.py', 'rb') as f:
+    version = str(ast.literal_eval(_version_re.search(
+        f.read().decode('utf-8')).group(1)))
 setup(
     # Needed to silence warnings 
     name='AnalysisUtilities',
@@ -11,7 +19,7 @@ setup(
     # Needed for dependencies
     install_requires=['numpy', 'numba', 'scipy', 'tqdm'],
     # *strongly* suggested for sharing
-    version='0.4.14',
+    version=version,
     # The license can be anything you like
     license='MIT',
     description='Python package for analyzing human kinematic data, tailored for the Cashaback Lab',
