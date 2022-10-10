@@ -23,7 +23,7 @@ def _Common_Language_EF_Two_Sample(data1, data2):
                 total += 0
     return total / (len(data1) * len(data2))
 
-def CLES(data1, data2, paired = False, sample = "one sample", alt_comparison = 0):
+def CLES(data1, data2, paired = False, sample = "two sample", alt_comparison = 0):
     """
     Computes the common language effect size for the given data
     if sample = "one sample", data2 should be treated as a single number, mu, the mean to compare the data to
