@@ -48,12 +48,12 @@ def _NB_Bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-side
         returned_distribution = centered_results
     elif alternative == "greater":
         #are results greater than the original?
-        p_val = np.sum(centered_results - abs(original_mean_diff) > 0)
+        p_val = np.sum(centered_results - (original_mean_diff) > 0)
         returned_distribution = centered_results - abs(original_mean_diff)
     elif alternative == "less":
         #are results less than the original?
-        p_val = np.sum(centered_results - abs(original_mean_diff) < 0)
-        returned_distribution = centered_results - abs(original_mean_diff)
+        p_val = np.sum(centered_results + (original_mean_diff) > 0)
+        returned_distribution = centered_results + abs(original_mean_diff)
     else:
         raise ValueError("alternative must be \"two-sided\", \"greater\", or \"less\"")
         
@@ -64,7 +64,7 @@ def Bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", 
     """ Bootstrap difference in means between two groups.
     M = float64 # Number of iterations
     paired = {True, False}
-    alternative = {"two-sided", "greater", "less"} #relative to data1, i.e.: data1 "greater" than data2
+    alternative = {"two-sided", "greater", "less"} #data1 relative to data2, i.e.: data1 "greater" than data2
     return_distribution {True, False} #returns the bootstrapped distribution
     
     ##Legacy code for backwards compatability. Do not reccomend usage.
