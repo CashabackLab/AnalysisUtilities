@@ -17,7 +17,7 @@ setup(
     # Needed to actually package something
     packages=['analysis_utilities', 'analysis_utilities.roth_analysis', 'analysis_utilities.stats'],
     # Needed for dependencies
-    install_requires=['numpy', 'numba', 'scipy', 'tqdm'],
+    install_requires=['numpy', 'numba > 0.54', 'scipy', 'tqdm'],
     # *strongly* suggested for sharing
     version=version,
     # The license can be anything you like
