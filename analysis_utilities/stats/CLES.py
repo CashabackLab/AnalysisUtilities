@@ -25,7 +25,7 @@ def _Common_Language_EF_Two_Sample(data1, data2):
     return total / (len(data1) * len(data2))
 
 def CLES(data1, data2, paired = False, sample = "two sample", alt_comparison = 0):
-    warnings.warn("Outdated function, please use \cles\ for better compatability.")
+    warnings.warn("Outdated function, please use \cles\ for better compatability.", DeprecationWarning)
     """
     Computes the common language effect size for the given data
     if sample = "one sample", data2 should be treated as a single number, mu, the mean to compare the data to
