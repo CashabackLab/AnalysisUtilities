@@ -75,5 +75,6 @@ def cles(data1, data2 = 0, paired = False, alternative = "greater", **kwargs):
         
     elif alternative == "less" and paired == True:
         theta = _Common_Language_EF_One_Sample(data2 - data1, 0)
-        
+    else: 
+        raise ValueError(f"Invalid alternative argument: \"{alternative}\". Valid Arguments are: {greater, less}")   
     return theta * 100
