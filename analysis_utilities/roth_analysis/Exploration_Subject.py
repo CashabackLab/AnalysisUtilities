@@ -148,7 +148,7 @@ class Exploration_Subject:
             
         for i in range(N):
             df = df_list[i]
-            if len(df.index[df['Event_Codes'] == event_code'].tolist()) != 0 :
+            if len(df.index[df['Event_Codes'] == event_code].tolist()) != 0 :
                 sub_history[i] = 1
 
             if i+1 < N:
