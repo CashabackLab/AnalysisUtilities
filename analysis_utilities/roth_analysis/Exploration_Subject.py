@@ -141,9 +141,14 @@ class Exploration_Subject:
         u_pos = self.u_pos[condition]
         v_pos = self.v_pos[condition]
         
+        if condition != "Punishment":
+            event_code = "SUB_REWARD"
+        else:
+            event_code = "TARGET_REACHED"
+            
         for i in range(N):
             df = df_list[i]
-            if len(df.index[df['Event_Codes'] == 'SUB_REWARD'].tolist()) != 0 :
+            if len(df.index[df['Event_Codes'] == event_code'].tolist()) != 0 :
                 sub_history[i] = 1
 
             if i+1 < N:
