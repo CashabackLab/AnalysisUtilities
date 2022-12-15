@@ -52,7 +52,7 @@ def cles(data1, data2 = 0, paired = False, alternative = "greater", **kwargs):
     
     """
     array_flag = 0
-    if type(data2) == type(list()) or type(data2) == type(np.array(1)):
+    if type(data2) == type(list()) or type(data2) == type(np.array(np.nan)):
         array_flag = 1
         data2 = np.array(data2)
         
