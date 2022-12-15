@@ -54,7 +54,9 @@ def cles(data1, data2 = 0, paired = False, alternative = "greater", **kwargs):
     array_flag = 0
     if type(data2) == type(list()) or type(data2) == type(np.array(1)):
         array_flag = 1
+        data2 = np.array(data2)
         
+    data1 = np.array(data1)
     ##if two samples given and not paired
     if alternative == "greater" and paired == False and array_flag:
         theta = _Common_Language_EF_Two_Sample(data1, data2)
