@@ -2,9 +2,9 @@
 #from . import custom_statistics
 # from.custom_statistics import *
 
-__version__ = "0.4.22"
+__version__ = "0.4.23"
 
-from .stats.Bootstrap import Bootstrap
+from .stats.Bootstrap import Bootstrap, bootstrap
 from .stats.Grubbs import Grubbs
 from .stats.CLES import CLES, cles
 from .stats.Cohen_D import Cohen_D
