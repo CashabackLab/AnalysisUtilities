@@ -1,10 +1,10 @@
+from scipy.special import erfinv
 import pandas as pd
 import os 
 import numpy as np
 import numba as nb
 import math 
-import pickle 
-from scipy.special import erfinv
+import dill 
 
 class Exploration_Subject:
     """
@@ -44,24 +44,25 @@ class Exploration_Subject:
         
         #Convert XY to UV positions (relative to target)
         for key in self.Condition_Dict.keys():
-            self.u_pos[key], self.v_pos[key]   = self.calc_uv(self.Condition_Dict[key])
+            self.u_pos[key], self.v_pos[key]   = self._calc_uv(self.Condition_Dict[key])
             
         #run analyses
         for condition in self.condition_list:
-            self.lag1_aim[condition], self.lag1_extent[condition] = self.calc_acf(1, condition)
+            self.lag1_aim[condition], self.lag1_extent[condition] = self._calc_acf(1, condition)
             
-            temp = self.calc_success_history(condition)
+            temp = self._calc_success_history(condition)
             self.reward_history[condition] = temp[0]
             self.reward_delta_hand_u_pos[condition], self.reward_delta_target_u_pos[condition] = temp[1], temp[2]
             self.reward_delta_hand_v_pos[condition], self.reward_delta_target_v_pos[condition] = temp[3], temp[4]
 
-            self.iqr_aim[condition], self.iqr_extent[condition] = self.calc_iqr(condition)
+            self.iqr_aim[condition], self.iqr_extent[condition] = self._calc_iqr(condition)
         
-            self.calc_var(condition)  
-            self.calc_hit_miss_var(condition)
+            self._calc_var(condition)  
+            self._calc_hit_miss_var(condition)
             
-            self.calc_rpe_analysis(condition)
+            self._calc_rpe_analysis(condition)
 
+            self._calc_reaction_and_movement_time(condition)
 
         #should always be last
         #reduces file size dramatically
@@ -91,9 +92,11 @@ class Exploration_Subject:
 
         self.aim_rpe_analysis, self.extent_rpe_analysis = dict(), dict()
 
+        self.reaction_time = dict()
+        self.movement_time = dict()
         self.save_path = ""
         
-    def calc_uv(self, Condition):
+    def _calc_uv(self, Condition):
         N = len(Condition)
         x_pos, y_pos = np.zeros(N)*np.nan, np.zeros(N)*np.nan
 
@@ -122,11 +125,11 @@ class Exploration_Subject:
         
         return u_pos - targ_u_pos, v_pos - targ_v_pos
     
-    def calc_acf(self, lag, condition):
+    def _calc_acf(self, lag, condition):
         
         return self._serial_corr(self.u_pos[condition], lag = lag), self._serial_corr(self.v_pos[condition], lag = lag)
 
-    def calc_success_history(self, condition):
+    def _calc_success_history(self, condition):
         df_list = self.Condition_Dict[condition]
         N = len(df_list)
 
@@ -141,14 +144,9 @@ class Exploration_Subject:
         u_pos = self.u_pos[condition]
         v_pos = self.v_pos[condition]
         
-        if condition != "Punishment":
-            event_code = "SUB_REWARD"
-        else:
-            event_code = "TARGET_REACHED"
-            
         for i in range(N):
             df = df_list[i]
-            if len(df.index[df['Event_Codes'] == event_code].tolist()) != 0 :
+            if len(df.index[df['Event_Codes'] == 'SUB_REWARD'].tolist()) != 0 :
                 sub_history[i] = 1
 
             if i+1 < N:
@@ -168,7 +166,7 @@ class Exploration_Subject:
 
         return sub_history, sub_u_delta, sub_u_delta_targ, sub_v_delta, sub_v_delta_targ
     
-    def calc_iqr(self, condition):
+    def _calc_iqr(self, condition):
         q3, q1 = np.percentile(self.u_pos[condition], [75, 25], axis = 0)
         aim_iqr = q3 - q1
         
@@ -177,7 +175,7 @@ class Exploration_Subject:
         
         return aim_iqr, extent_iqr
 
-    def calc_var(self, condition):
+    def _calc_var(self, condition):
         if condition == "Baseline" or condition == "Washout":
             self.aim_variability[condition] = np.nanstd(self.u_pos[condition][40:50])
             self.extent_variability[condition] = np.nanstd(self.v_pos[condition][40:50])
@@ -185,7 +183,7 @@ class Exploration_Subject:
             self.aim_variability[condition] = np.nanstd(self.u_pos[condition])
             self.extent_variability[condition] = np.nanstd(self.v_pos[condition])
             
-    def calc_hit_miss_var(self, condition):
+    def _calc_hit_miss_var(self, condition):
         u_endpoints = self.u_pos[condition]
         v_endpoints = self.v_pos[condition]
         hist_list = self.reward_history[condition]
@@ -215,7 +213,7 @@ class Exploration_Subject:
         self.extent_hit_variability[condition] = v_hit_var
         self.extent_miss_variability[condition] = v_miss_var
 
-    def calc_rpe_analysis(self, condition):
+    def _calc_rpe_analysis(self, condition):
         N = self.u_pos[condition].shape[0]
         
         aim_delta_xxx = {"000":np.zeros(N)*np.nan, "001":np.zeros(N)*np.nan,
@@ -274,12 +272,46 @@ class Exploration_Subject:
             
         self.aim_rpe_analysis[condition] = temp_aim_rpe_analysis
         self.extent_rpe_analysis[condition] = temp_extent_rpe_analysis
+    
+    def _calc_reaction_and_movement_time(self, condition):
+        trials = self.Condition_Dict[condition]
+    
+        N = len(trials)
+        start_time = np.empty(N) * np.nan
+        movement_start = np.empty(N) * np.nan
+        RT_hit, RT_miss = np.empty(N) * np.nan,  np.empty(N) * np.nan
+        MT_hit, MT_miss = np.empty(N) * np.nan,  np.empty(N) * np.nan
+
+        #Get reward history
+        sub_history = self.reward_history[condition]
+
+        for i in range(1, N):
+            df = trials[i]
+            start_time     = df.loc[df['Event_Codes'] == "GREENLIGHT" ].index.to_numpy()[0] / 1000
+            movement_start = df.loc[df['Event_Codes'] == "LEFT_START" ].index.to_numpy()[0] / 1000
+            stop_time      = df.loc[df['Event_Codes'] == "HAND_STEADY"].index.to_numpy()[0] / 1000
+
+            if sub_history[i-1] > 0:
+                RT_hit[i] = movement_start - start_time
+                MT_hit[i] = stop_time - movement_start
+            else:
+                RT_miss[i] = movement_start - start_time
+                MT_miss[i] = stop_time - movement_start
+        self.reaction_time[condition] = dict()
+        self.movement_time[condition] = dict()
+        
+        self.reaction_time[condition]["Hit"] = RT_hit
+        self.movement_time[condition]["Hit"] = MT_hit
+        
+        self.reaction_time[condition]["Miss"] = RT_miss
+        self.movement_time[condition]["Miss"] = MT_miss
         
     def get_target_width(self, success_rate):
         return self.aim_variability["Baseline"] * (2**.5) * (erfinv(success_rate) - erfinv(-success_rate))
     
     def get_target_length(self, success_rate):
         return self.extent_variability["Baseline"] * (2**.5) * (erfinv(success_rate) - erfinv(-success_rate))
+    
     #####################################################################################################################
     def __eq__(self, x):
         return self.ID == x
@@ -297,9 +329,9 @@ class Exploration_Subject:
     
     def save_data(self):
         if self.experiment_name != "":
-            pickle.dump(self, open(os.path.join(self.save_path, f"{self.experiment_name}_Subject_{self.ID}.pkl"), "wb"))
+            dill.dump(self, open(os.path.join(self.save_path, f"{self.experiment_name}_Subject_{self.ID}.pkl"), "wb"))
         else:
-            pickle.dump(self, open(os.path.join(self.save_path, f"Subject_{self.ID}.pkl"), "wb"))
+            dill.dump(self, open(os.path.join(self.save_path, f"Subject_{self.ID}.pkl"), "wb"))
         
     @classmethod
     def from_pickle(self, filePath, subID, exp_name = ""):
@@ -308,7 +340,7 @@ class Exploration_Subject:
         else:
             full_path = os.path.join(filePath, f"Subject_{subID}.pkl")
             
-        return pickle.load(open(full_path, "rb"))
+        return dill.load(open(full_path, "rb"))
     
     ######################################################################################################################
     @staticmethod
