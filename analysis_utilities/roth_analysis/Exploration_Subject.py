@@ -105,12 +105,16 @@ class Exploration_Subject:
         init_angle = 0.785398
         for i in range(N):
             df = Condition[i]
-            if df[df['Event_Codes'] == 'HAND_STEADY']['Right_HandX'].empty:
-                x_pos[i] =  df[df['Event_Codes'] == 'HAND_STEADY']['Left_HandX'] - start_x
-                y_pos[i] =  df[df['Event_Codes'] == 'HAND_STEADY']['Left_HandY'] - start_y
+            if "Right_HandX" in df.columns:
+                hand = "Right_Hand"
             else:
-                x_pos[i] =  df[df['Event_Codes'] == 'HAND_STEADY']['Right_HandX'] - start_x
-                y_pos[i] =  df[df['Event_Codes'] == 'HAND_STEADY']['Right_HandY'] - start_y
+                hand = "Left_Hand"
+                
+            if df[df['Event_Codes'] == 'HAND_STEADY'][hand + "X"].empty:
+                pass
+            else:
+                x_pos[i] =  df[df['Event_Codes'] == 'HAND_STEADY'][hand + "X"] - start_x
+                y_pos[i] =  df[df['Event_Codes'] == 'HAND_STEADY'][hand + "Y"] - start_y
 
         #translate to u, v coords
         #u == relevant
