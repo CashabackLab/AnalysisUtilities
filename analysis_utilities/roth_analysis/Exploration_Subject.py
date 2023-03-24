@@ -106,7 +106,8 @@ class Exploration_Subject:
         for i in range(N):
             df = Condition[i]
             if df[df['Event_Codes'] == 'HAND_STEADY']['Right_HandX'].empty:
-                pass
+                x_pos[i] =  df[df['Event_Codes'] == 'HAND_STEADY']['Left_HandX'] - start_x
+                y_pos[i] =  df[df['Event_Codes'] == 'HAND_STEADY']['Left_HandY'] - start_y
             else:
                 x_pos[i] =  df[df['Event_Codes'] == 'HAND_STEADY']['Right_HandX'] - start_x
                 y_pos[i] =  df[df['Event_Codes'] == 'HAND_STEADY']['Right_HandY'] - start_y
