@@ -274,6 +274,9 @@ class Exploration_Subject:
         self.extent_rpe_analysis[condition] = temp_extent_rpe_analysis
     
     def _calc_reaction_and_movement_time(self, condition):
+        if condition in ["Baseline", "Washout"]:
+            return None
+        
         trials = self.Condition_Dict[condition]
     
         N = len(trials)
