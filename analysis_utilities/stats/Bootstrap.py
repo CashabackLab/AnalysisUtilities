@@ -142,7 +142,7 @@ def _nb_mean_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two
         returned_distribution = centered_results - abs(original_mean_diff)
     elif alternative == "less":
         #are results less than the original?
-        p_val = np.sum(centered_results + (original_mean_diff) > 0)
+        p_val = np.sum(centered_results - (original_mean_diff) < 0)
         returned_distribution = centered_results + abs(original_mean_diff)
     else:
         raise ValueError("alternative must be \"two-sided\", \"greater\", or \"less\"")
@@ -194,7 +194,7 @@ def _nb_median_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "t
         returned_distribution = centered_results - abs(original_mean_diff)
     elif alternative == "less":
         #are results less than the original?
-        p_val = np.sum(centered_results + (original_mean_diff) > 0)
+        p_val = np.sum(centered_results - (original_mean_diff) < 0)
         returned_distribution = centered_results + abs(original_mean_diff)
     else:
         raise ValueError("alternative must be \"two-sided\", \"greater\", or \"less\"")
