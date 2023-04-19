@@ -2,7 +2,7 @@
 #from . import custom_statistics
 # from.custom_statistics import *
 
-__version__ = "0.5.6"
+__version__ = "0.5.7"
 
 from .stats.Bootstrap import Bootstrap, bootstrap
 from .stats.Grubbs import Grubbs
