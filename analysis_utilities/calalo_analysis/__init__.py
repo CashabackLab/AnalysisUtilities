@@ -1,6 +1,6 @@
 from .Analysis import butter_bandpass, butter_bandpass_filter,  Find_Event_Times
 from .Analysis import  butter_lowpass_filter, derivative, Filter_EMG
-from .Analysis importbutter_lowpass,  Filter_KIN, Filter_Force
+from .Analysis import butter_lowpass,  Filter_KIN, Filter_Force
 from .Analysis import Analyze_Indexes, Select_Window_Trials
 from .Analysis import Load_Temp_Dat_File, Pull_Data_Set, Load_CSV_Files
 from .Analysis import Find_Zero_Pos, Pos_Kin_Analysis, Rot_Data
