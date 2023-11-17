@@ -51,6 +51,8 @@ def cles(data1, data2 = 0, paired = False, alternative = "greater", **kwargs):
     paired: {True, False}, must give data array as second input
     
     """
+    kwargs.get("normalize", False)
+    
     array_flag = 0
     if type(data2) == type(list()) or type(data2) == type(np.array(np.nan)):
         array_flag = 1
@@ -78,5 +80,10 @@ def cles(data1, data2 = 0, paired = False, alternative = "greater", **kwargs):
     elif alternative == "less" and paired == True:
         theta = _Common_Language_EF_One_Sample(data2 - data1, 0)
     else: 
-        raise ValueError(f"Invalid alternative argument: \"{alternative}\". Valid Arguments are: [greater, less]")   
+        raise ValueError(f"Invalid alternative argument: \"{alternative}\". Valid Arguments are: [greater, less]") 
+
+    if normalize:
+        if theta < .5:
+            theta = 1-theta
+            
     return theta * 100
