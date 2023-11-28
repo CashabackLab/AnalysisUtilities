@@ -41,7 +41,7 @@ def CLES(data1, data2, paired = False, sample = "two sample", alt_comparison = 0
         data = np.array(data1) - np.array(data2)
         return _Common_Language_EF_One_Sample(data, alt_comparison) *100
     
-def cles(data1, data2 = 0, paired = False, alternative = "greater", **kwargs):
+def cles(data1, data2 = 0, paired = False, alternative = "greater", normalize = False, **kwargs):
     """
     Computes the common language effect size for the given data.
     If only one data array is given, computes one sample cles
@@ -49,7 +49,7 @@ def cles(data1, data2 = 0, paired = False, alternative = "greater", **kwargs):
         computes cles comparison to the given number
     alternative : {greater, less}; default is greater
     paired: {True, False}, must give data array as second input
-    
+    normalize: {True, False}, normalize result to be between 50 - 100
     """
     kwargs.get("normalize", False)
     
