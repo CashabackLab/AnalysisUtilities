@@ -50,9 +50,7 @@ def cles(data1, data2 = 0, paired = False, alternative = "greater", normalize = 
     alternative : {greater, less}; default is greater
     paired: {True, False}, must give data array as second input
     normalize: {True, False}, normalize result to be between 50 - 100
-    """
-    kwargs.get("normalize", False)
-    
+    """    
     array_flag = 0
     if type(data2) == type(list()) or type(data2) == type(np.array(np.nan)):
         array_flag = 1
