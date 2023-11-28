@@ -64,7 +64,7 @@ def Bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", 
     """ Bootstrap difference in means between two groups.
     M = float64 # Number of iterations
     paired = {True, False}
-    alternative = {"two-sided", "greater", "less"} #data1 relative to data2, i.e.: data1 "greater" than data2
+    alternative = {"two-sided", "greater", "less"} #data1 relative to data2, i.e.: data1 "greater" than data2. 
     return_distribution {True, False} #returns the bootstrapped distribution
     
     ##Legacy code for backwards compatability. Do not reccomend usage.
@@ -98,7 +98,7 @@ def Bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", 
         return p_val
     
 @njit(parallel = True)
-def _nb_mean_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided"):
+def _nb_mean_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", seed = 1):
     rng = np.random
 
     results = np.empty(M) * np.nan
@@ -112,6 +112,7 @@ def _nb_mean_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two
         data_len = paired_diff.shape[0]
         
         for i in nb.prange(M):
+            rng.seed(int(i * seed))
             results[i] = np.nanmean(rng.choice(paired_diff, size = data_len, replace = True))
     else:        
         data_len = data1.shape[0]
@@ -123,6 +124,7 @@ def _nb_mean_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two
         
         #Recreate the two groups by sampling without replacement
         for i in nb.prange(M): 
+            rng.seed(int(i * seed))
             tmp = rng.choice(pooled_data, size = len(pooled_data), replace = False)
             data1_resample = tmp[:data_len] #up to number of points in data1
             data2_resample = tmp[data_len:] #the rest are in data2
@@ -132,7 +134,7 @@ def _nb_mean_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two
     #center the results on 0
     centered_results = results - np.nanmean(results)
 
-    if alternative == "two-sided":
+    if alternative == "two-sided" or alternative == "two.sided":
         #are the results more extreme than the original?
         p_val = np.sum(centered_results > abs(original_mean_diff)) + np.sum(centered_results < -abs(original_mean_diff))
         returned_distribution = centered_results
@@ -150,7 +152,7 @@ def _nb_mean_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two
     return p_val / M, returned_distribution
 
 @njit(parallel = True)
-def _nb_median_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided"):
+def _nb_median_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", seed = 1):
     rng = np.random
 
     results = np.empty(M) * np.nan
@@ -164,6 +166,7 @@ def _nb_median_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "t
         data_len = paired_diff.shape[0]
         
         for i in nb.prange(M):
+            rng.seed(int(i * seed))
             results[i] = np.nanmedian(rng.choice(paired_diff, size = data_len, replace = True))
     else:        
         data_len = data1.shape[0]
@@ -175,6 +178,7 @@ def _nb_median_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "t
         
         #Recreate the two groups by sampling without replacement
         for i in nb.prange(M): 
+            rng.seed(int(i * seed))
             tmp = rng.choice(pooled_data, size = len(pooled_data), replace = False)
             data1_resample = tmp[:data_len] #up to number of points in data1
             data2_resample = tmp[data_len:] #the rest are in data2
@@ -184,7 +188,7 @@ def _nb_median_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "t
     #center the results on 0
     centered_results = results - np.nanmean(results)
 
-    if alternative == "two-sided":
+    if alternative == "two-sided" or alternative == "two.sided":
         #are the results more extreme than the original?
         p_val = np.sum(centered_results > abs(original_mean_diff)) + np.sum(centered_results < -abs(original_mean_diff))
         returned_distribution = centered_results
@@ -201,14 +205,15 @@ def _nb_median_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "t
         
     return p_val / M, returned_distribution
 
-def bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", return_distribution = False, test = "mean", **kwargs):
+def bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", return_distribution = False, test = "mean", seed = 1, **kwargs):
     """ 
     Bootstrap difference in means or medians between two groups.
     M = float64 # Number of iterations
     paired = {True, False}
-    alternative = {"two-sided", "greater", "less"} #data1 relative to data2, i.e.: data1 "greater" than data2
+    alternative = {"two-sided", "greater", "less"} #data1 relative to data2, i.e.: data1 "greater" than data2. "two.sided" is also accepted
     return_distribution {True, False} #returns the bootstrapped distribution
     test = {"mean", "median"} #compares either differences in means or median
+    seed = int #modifies the seed used in the random number generator
     
     ##Legacy code for backwards compatability. Do not reccomend usage.
     direction = {"greater", "lesser", None} 
@@ -234,9 +239,9 @@ def bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", 
         raise ValueError("\"direction\" keyword misused. Please use the \"alternative\" keyward argument.")
     
     if test == "mean":
-        p_val, distribution = _nb_mean_bootstrap(data1, data2, M = M, paired = paired, alternative = alternative)
+        p_val, distribution = _nb_mean_bootstrap(data1, data2, M = M, paired = paired, alternative = alternative, seed = seed)
     elif test == "median":
-        p_val, distribution = _nb_median_bootstrap(data1, data2, M = M, paired = paired, alternative = alternative)
+        p_val, distribution = _nb_median_bootstrap(data1, data2, M = M, paired = paired, alternative = alternative, seed = seed)
     else:
         raise ValueError("\"test\" must be \"mean\" or \"median\".")
         
