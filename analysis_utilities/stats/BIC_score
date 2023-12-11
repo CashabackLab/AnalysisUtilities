@@ -1,0 +1,4 @@
+import numpy as np
+
+def bic_score(num_parameters, num_datapoints, likelihood):
+    return np.log(num_datapoints)*num_parameters + 2*np.log(likelihood)
