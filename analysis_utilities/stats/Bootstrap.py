@@ -98,7 +98,7 @@ def Bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", 
         return p_val
     
 @njit(parallel = True)
-def _nb_mean_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", seed = 1):
+def _nb_mean_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", seed = None):
     rng = np.random
 
     results = np.empty(M) * np.nan
@@ -112,7 +112,8 @@ def _nb_mean_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two
         data_len = paired_diff.shape[0]
         
         for i in nb.prange(M):
-            rng.seed(int(i * seed))
+            if seed != None:
+                rng.seed(int(i * seed))
             results[i] = np.nanmean(rng.choice(paired_diff, size = data_len, replace = True))
     else:        
         data_len = data1.shape[0]
@@ -124,7 +125,8 @@ def _nb_mean_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two
         
         #Recreate the two groups by sampling without replacement
         for i in nb.prange(M): 
-            rng.seed(int(i * seed))
+            if seed != None:
+                rng.seed(int(i * seed))
             tmp = rng.choice(pooled_data, size = len(pooled_data), replace = False)
             data1_resample = tmp[:data_len] #up to number of points in data1
             data2_resample = tmp[data_len:] #the rest are in data2
@@ -152,7 +154,7 @@ def _nb_mean_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two
     return p_val / M, returned_distribution
 
 @njit(parallel = True)
-def _nb_median_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", seed = 1):
+def _nb_median_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", seed = None):
     rng = np.random
 
     results = np.empty(M) * np.nan
@@ -166,7 +168,8 @@ def _nb_median_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "t
         data_len = paired_diff.shape[0]
         
         for i in nb.prange(M):
-            rng.seed(int(i * seed))
+            if seed != None:
+                rng.seed(int(i * seed))
             results[i] = np.nanmedian(rng.choice(paired_diff, size = data_len, replace = True))
     else:        
         data_len = data1.shape[0]
@@ -178,7 +181,8 @@ def _nb_median_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "t
         
         #Recreate the two groups by sampling without replacement
         for i in nb.prange(M): 
-            rng.seed(int(i * seed))
+            if seed != None:
+                rng.seed(int(i * seed))
             tmp = rng.choice(pooled_data, size = len(pooled_data), replace = False)
             data1_resample = tmp[:data_len] #up to number of points in data1
             data2_resample = tmp[data_len:] #the rest are in data2
@@ -205,7 +209,7 @@ def _nb_median_bootstrap(data1, data2, M = 1e4, paired = False, alternative = "t
         
     return p_val / M, returned_distribution
 
-def bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", return_distribution = False, test = "mean", seed = 1, **kwargs):
+def bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided", return_distribution = False, test = "mean", seed = None, **kwargs):
     """ 
     Bootstrap difference in means or medians between two groups.
     M = float64 # Number of iterations
