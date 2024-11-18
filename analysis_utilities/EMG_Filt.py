@@ -1,1 +1,1 @@
-print("Jan Neeeeeds To Write This")
+print("Jan Neeeeeeds To Write This")
