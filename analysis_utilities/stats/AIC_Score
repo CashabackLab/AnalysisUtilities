@@ -1,4 +1,0 @@
-import numpy as np
-
-def aic_score(num_parameters,nuim_data_points, likelihood):
-    return 2*(num_parameters + np.log(likelihood))
