@@ -9,6 +9,21 @@ warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 
 @njit(parallel = True)
 def _NB_Bootstrap(data1, data2, M = 1e4, paired = False, alternative = "two-sided"):
+    '''Performs a bootstrapped permutation test on our data. For a between test, will take two sets of 
+    data and pool them. Two groups are then randomly sampled repetitively with replacement
+    and a mean difference is calculated for each set of two groups sampled. This will then produce M bootstraps
+    and a numerical null distribution. The p-value is the proportion of the data more extreme (either one or two sided)
+    than our original data samples mean difference. 
+
+    A paired test will resample from the pool of mean differences. In order to test a data set against zero, paired
+    should be selected and the second data set will be zeros of the same length as the first data set. This will
+    generate a null distribution for just the first data set.
+
+    M = float64 # Number of iterations
+    paired = {True, False}
+    alternative = {"two-sided", "greater", "less"} #data1 relative to data2, i.e.: data1 "greater" than data2. 
+    return_distribution {True, False} #returns the bootstrapped distribution
+    '''
     rng = np.random
 
     results = np.empty(M) * np.nan
