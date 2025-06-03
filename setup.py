@@ -15,7 +15,8 @@ setup(
     author='CashabackLab',
     author_email='cashabacklab@gmail.com',
     # Needed to actually package something
-    packages=['analysis_utilities', 'analysis_utilities.roth_analysis', 'analysis_utilities.calalo_analysis','analysis_utilities.stats'],
+    packages=['analysis_utilities', 'analysis_utilities.roth_analysis', 'analysis_utilities.calalo_analysis','analysis_utilities.stats', 
+              'analysis_utilities.utils'],
     # Needed for dependencies
     install_requires=['numpy', 'numba > 0.54', 'scipy', 'tqdm'],
     # *strongly* suggested for sharing

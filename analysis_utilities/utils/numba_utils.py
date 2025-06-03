@@ -1,7 +1,7 @@
 from numba import njit
 import numpy as np
 
-@nb.njit
+@njit
 def np_apply_along_axis(func1d, arr, axis):
     assert axis in [0, 1]
 
@@ -30,6 +30,6 @@ def nb_mean(array, axis):
 def nb_nanmean(array, axis):
     return np_apply_along_axis(np.nanmean, array, axis)
 
-@nb.njit
+@njit
 def nb_nanmedian(array, axis):
     return np_apply_along_axis(np.nanmedian, array, axis)
