@@ -4,7 +4,7 @@
 
 __version__ = "0.5.20"
 
-from .stats.Bootstrap import Bootstrap, bootstrap
+from .stats.Bootstrap import bootstrap
 from .stats.Grubbs import Grubbs
 from .stats.CLES import CLES, cles
 from .stats.Cohen_D import Cohen_D
