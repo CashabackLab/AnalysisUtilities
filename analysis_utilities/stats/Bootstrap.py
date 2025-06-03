@@ -3,7 +3,7 @@ from numba import njit
 import numba as nb
 from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
 import warnings
-from typing import Literal 
+from typing import Literal, Union, Callable
 from analysis_utilities.utils import nb_nanmean, nb_nanmedian
 
 warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
@@ -12,11 +12,11 @@ warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 @nb.njit(parallel = True)
 def _nb_bootstrap(
     data1, data2, 
-    avg_function,
-    M = 1e4, 
-    paired = False, 
-    alternative:Literal["two-sided","less", "greater"] = "two-sided", 
-    seed = None
+    avg_function:Callable,
+    M:int, 
+    paired:bool, 
+    alternative:str, 
+    seed:Union[int,None]
 ): 
     
     rng = np.random
@@ -78,12 +78,13 @@ def _nb_bootstrap(
     
     return final_pval, returned_distribution
 
-def bootstrap(data1, data2, M:int = 1e4, 
+def bootstrap(data1, data2, 
+              M:int = int(1e4), 
               paired:bool = False, 
-              alternative:Literal["two-sided","less", "greater"] = "two-sided",  
-              stat_type:Literal["mean","median"] = "mean", 
+              alternative:str = "two-sided",  
+              stat_type:str = "mean", 
               return_distribution:bool = False, 
-              seed:int = None, 
+              seed:Union[int,None] = None, 
               **kwargs):
     """ 
     Bootstrap difference in means or medians between two groups.
@@ -102,13 +103,19 @@ def bootstrap(data1, data2, M:int = 1e4,
     else:
         raise ValueError("stat_type should be 'mean' or 'median'")    
     
+    assert alternative in ["two-sided", "greater", "less"]
     #make sure data is in np.array format
     data1, data2 = np.array(data1), np.array(data2)
     
     #make M an integer
     M = int(M)
         
-    p_val, distribution = _nb_bootstrap(data1, data2, avg_function=avg_function, M = M, paired = paired, alternative = alternative, seed = seed)
+    p_val, distribution = _nb_bootstrap(data1, data2, 
+                                        avg_function=avg_function, 
+                                        M = M, 
+                                        paired = paired, 
+                                        alternative = alternative, 
+                                        seed = seed)
 
         
     if return_distribution:
