@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import stats
 
-def Grubbs(data, type = "Two Sided", alpha = 0.05, verbose = False):
+def grubbs(data, type = "Two Sided", alpha = 0.05, verbose = False):
     '''
     Performs the Grub's Outlier test on data.
     Set verbose to true to see the grubbs value and threshold
