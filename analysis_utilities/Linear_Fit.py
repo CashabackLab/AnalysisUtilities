@@ -1,6 +1,6 @@
 import numpy as np
 
-def Linear_Fit(array_A, array_B):
+def linear_fit(array_A, array_B):
     """
     Returns slope and y-intercept of the line of best fit
     """

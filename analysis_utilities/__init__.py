@@ -5,10 +5,10 @@
 __version__ = "0.5.20"
 
 from .stats.Bootstrap import bootstrap
-from .stats.Grubbs import Grubbs
-from .stats.CLES import CLES, cles
-from .stats.Cohen_D import Cohen_D
+from .stats.Grubbs import grubbs
+from .stats.CLES import cles
+from .stats.Cohen_D import cohen_d
 from .stats.holmbonferroni_correction import holmbonferroni_correction
 
-from .Linear_Fit import Linear_Fit
+from .Linear_Fit import linear_fit
 from .remove_nans import remove_nans

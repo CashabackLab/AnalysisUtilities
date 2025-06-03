@@ -1,6 +1,6 @@
 import numpy as np
 
-def Cohen_D(data1, data2):
+def cohen_d(data1, data2):
     data1, data2 = np.array(data1), np.array(data2)
     
     mean1, mean2 = np.nanmean(data1), np.nanmean(data2)
