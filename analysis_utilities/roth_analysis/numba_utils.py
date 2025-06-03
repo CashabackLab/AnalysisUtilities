@@ -1,7 +1,7 @@
 from numba import njit
 import numpy as np
 
-@nb.njit
+@njit
 def np_apply_along_axis(func1d, arr, axis):
     assert axis in [0, 1]
 
