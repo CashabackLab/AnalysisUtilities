@@ -23,9 +23,7 @@ def _nb_bootstrap(
     M = int(M)
     results = np.empty(M) * np.nan
 
-    if paired:
-        assert data1.shape == data2.shape
-        
+    if paired:        
         #Want to resample from the distribution of paired differences with replacement
         paired_diff = data1 - data2
         data_len = paired_diff.shape[0]
@@ -35,9 +33,6 @@ def _nb_bootstrap(
                 rng.seed(int(i * seed))
             results[i] = avg_function(rng.choice(paired_diff, size = data_len, replace = True), axis=0)
     else:        
-        if data1.shape != data2.shape:
-            raise UserWarning("Sample sizes not the same (data1 shape and data2 shape are not the same).")
-        
         data_len = data1.shape[0]
         
         #create a bucket with all data thrown inside
@@ -109,7 +104,14 @@ def bootstrap(data1, data2,
     
     #make M an integer
     M = int(M)
-        
+    
+    # Check sample sizes
+    if paired:
+        assert data1.shape == data2.shape
+    else:        
+        if data1.shape != data2.shape:
+            warnings.warn("Sample sizes not the same (data1 shape and data2 shape are not the same).", UserWarning)
+            
     p_val, distribution = _nb_bootstrap(data1, data2, 
                                         avg_function=avg_function, 
                                         M = M, 
