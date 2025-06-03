@@ -24,7 +24,7 @@ def _common_language_ef_two_sample(data1, data2):
                 total += 0
     return total / (len(data1) * len(data2))
     
-def cles(data1, data2 = 0, paired = False, alternative = "greater", **kwargs):
+def cles(data1, data2 = 0, paired = False, alternative = "greater"):
     """
     Computes the common language effect size for the given data.
     If only one data array is given, computes one sample cles
