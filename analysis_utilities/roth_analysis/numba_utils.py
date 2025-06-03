@@ -26,3 +26,7 @@ def nb_mean(array, axis):
 @njit
 def nb_nanmean(array, axis):
     return np_apply_along_axis(np.nanmean, axis, array)
+
+@njit
+def nb_nanmedian(array, axis):
+    return np_apply_along_axis(np.nanmedian, axis, array)
