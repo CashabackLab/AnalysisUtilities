@@ -3,3 +3,4 @@ numba > 0.54
 scipy
 tqdm
 pytest
+pingouin
