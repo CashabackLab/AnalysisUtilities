@@ -20,7 +20,7 @@ def test_nb_bootstrap_edgecases_paired():
                             return_distribution = False, 
                             seed=10)
     
-        assert out == expected_pval[i], f"{i} didn't work"
+            assert out == expected_pval[i], f"{i} didn't work"
 
 def test_nb_boostrap_unpaired():
     assert True
