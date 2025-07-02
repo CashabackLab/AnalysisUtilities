@@ -1,9 +1,7 @@
 import numpy as np
-from numba import njit
 import numba as nb
 from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
 import warnings
-from typing import Literal, Union, Callable
 from analysis_utilities.utils import nb_nanmean, nb_nanmedian
 
 warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
@@ -12,11 +10,11 @@ warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 @nb.njit(parallel = True)
 def _nb_bootstrap(
     data1, data2, 
-    avg_function:Callable,
+    avg_function,
     M:int, 
     paired:bool, 
     alternative:str, 
-    seed:Union[int,None]
+    seed:int|None
 ): 
     
     rng = np.random
