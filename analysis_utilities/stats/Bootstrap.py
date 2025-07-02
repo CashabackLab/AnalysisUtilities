@@ -14,7 +14,7 @@ def _nb_bootstrap(
     M:int, 
     paired:bool, 
     alternative:str, 
-    seed:int|None = None
+    seed:int = None
 ): 
     
     rng = np.random
@@ -77,7 +77,7 @@ def bootstrap(data1, data2,
               alternative:str = "two-sided",  
               stat_type:str = "mean", 
               return_distribution:bool = False, 
-              seed:int|None = None, 
+              seed:int = None, 
               **kwargs):
     """ 
     Bootstrap difference in means or medians between two groups.
