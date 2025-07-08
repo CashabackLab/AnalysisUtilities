@@ -2,4 +2,5 @@
 *.egg-info
 .ipynb_checkpoints
 .DS_Store
+test_folder
 __pycache__/
