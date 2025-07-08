@@ -3,7 +3,7 @@ import numba as nb
 from numba import njit
 
 @njit(parallel = True, fastmath = False) # nb.prange will only run if parallel = True
-def bic_score(data, estimates, num_params):
+def aic_score(data, estimates, num_params):
     '''Calculates the AIC (Akaike Information Criterion) of our model, assuming our 
     model fit residuals are distributed as a gaussian. This is a fair assumption if 
     the data is gaussian and your model fits reasonably well to the mean of the data.
@@ -26,4 +26,4 @@ def bic_score(data, estimates, num_params):
         MSE_i = np.mean((data[i] - estimates[i])**2)
         MSE += MSE_i
 
-    return num_params*np.log(num_pts) + num_pts*np.log(MSE)
+    return 2*num_params + num_pts*np.log(MSE)
