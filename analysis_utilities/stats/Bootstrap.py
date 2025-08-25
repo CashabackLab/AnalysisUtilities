@@ -186,6 +186,10 @@ def _nb_bootstrap_linear_regression(
     # create empty arrays to store results
     results_store_slopes = np.empty(M) * np.nan
     results_store_intercepts = np.empty(M) * np.nan
+    group_1_resampled_slopes = np.empty(M) * np.nan
+    group_2_resampled_slopes = np.empty(M) * np.nan
+    group_1_resampled_intercepts = np.empty(M) * np.nan
+    group_2_resampled_intercepts = np.empty(M) * np.nan
     
     data_len = len(data_group_1)
     
@@ -211,6 +215,10 @@ def _nb_bootstrap_linear_regression(
         m_2, b_2 = linear_regression_func(data_group_2_resample[:,0], data_group_2_resample[:,1])
 
         # store the slope and y-intercept differences between groups
+        group_1_resampled_slopes[i] = m_1
+        group_2_resampled_slopes[i] = m_2
+        group_1_resampled_intercepts[i] = b_1
+        group_2_resampled_intercepts[i] = b_2
         results_store_slopes[i] = m_1 - m_2
         results_store_intercepts[i] = b_1 - b_2
 
@@ -229,7 +237,7 @@ def _nb_bootstrap_linear_regression(
     final_pval_m = compare_to_null(centered_results_m, original_m_diff, alternative)
     final_pval_b = compare_to_null(centered_results_b, original_b_diff, alternative)
     
-    return original_m_1, original_b_1, original_m_2, original_b_2, final_pval_m, centered_results_m, final_pval_b, centered_results_b
+    return final_pval_m, centered_results_m, final_pval_b, centered_results_b, group_1_resampled_slopes, group_2_resampled_slopes, group_1_resampled_intercepts, group_2_resampled_intercepts
 
 
 def bootstrap_linear_regression(data_group_1, data_group_2, 
@@ -285,16 +293,18 @@ def bootstrap_linear_regression(data_group_1, data_group_2,
         if data_group_1.shape != data_group_2.shape:
             warnings.warn("Sample sizes not the same (data_group_1 shape and data_group_2 shape are not the same).", UserWarning)
             
-    original_m_1, original_b_1, original_m_2, original_b_2, final_pval_m, returned_distribution_m, final_pval_b, returned_distribution_b = _nb_bootstrap_linear_regression(data_group_1, data_group_2, 
+    final_pval_m, returned_distribution_m, final_pval_b, returned_distribution_b, group_1_resampled_slopes, group_2_resampled_slopes, group_1_resampled_intercepts, group_2_resampled_intercepts = _nb_bootstrap_linear_regression(data_group_1, data_group_2, 
                                                                                     M = M, 
                                                                                     paired = paired, 
                                                                                     alternative = alternative, 
                                                                                     seed = seed)
-    return dict({'slope_pval': final_pval_m, 'intercept_pval': final_pval_b,
-                 'slope_distribution': returned_distribution_m,
-                 'intercept_distribution': returned_distribution_b,
-                 'm_1': original_m_1, 'b_1': original_b_1, 
-                 'm_2': original_m_2,'b_2': original_b_2})
+    return dict({'slope_diff_pval': final_pval_m, 'intercept_diff_pval': final_pval_b,
+                 'slope_difference_distribution': returned_distribution_m,
+                 'intercept_difference_distribution': returned_distribution_b,
+                 'resampled_slope_group1_distribution': group_1_resampled_slopes,
+                 'resampled_slope_group2_distribution': group_2_resampled_slopes,
+                 'resampled_intercept_group1_distribution': group_1_resampled_intercepts,
+                 'resampled_intercept_group2_distribution': group_2_resampled_intercepts})
         
     # if return_distribution:
     #     return p_val, distribution
