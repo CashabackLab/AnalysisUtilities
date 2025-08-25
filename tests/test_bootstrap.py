@@ -1,6 +1,10 @@
 import numpy as np
+from analysis_utilities import compare_to_null
+from analysis_utilities import linear_regression_func
 from analysis_utilities import bootstrap
+from analysis_utilities import bootstrap_linear_regression
 import pingouin as pg
+import scipy as sp
 
 alternatives = ["two-sided", "greater", "less"]
 
@@ -57,4 +61,64 @@ def test_nb_bootstrap_josh_boot_example():
                                 seed=20)
     assert np.abs(boot_pval - CORRECT_OUTPUT) < 0.005 
 
-    
+def test_nb_bootstrap_linear_regression_against_numpy():
+    m_1, b_1 = -20, 3.14
+
+    x_data_1 = np.arange(0,21)
+    y_data_1 = (m_1 * x_data_1) + b_1
+
+    test_m, test_b = linear_regression_func(x_data_1, y_data_1)
+    np_slope, np_intercept = np.polyfit(x_data_1, y_data_1, 1)
+    assert abs(test_m - np_slope) < 0.0001 and abs(test_b - np_intercept) < 0.0001
+
+def test_nb_bootstrap_linear_regression_against_scipy():
+    m_1, b_1 = 10, 77
+
+    x_data_1 = np.arange(0,21)
+    y_data_1 = (m_1 * x_data_1) + b_1
+
+    test_m, test_b = linear_regression_func(x_data_1, y_data_1)
+    sp_slope = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').slope)
+    sp_intercept = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').intercept)
+     
+    assert abs(test_m - sp_slope) < 0.0001 and abs(test_b - sp_intercept) < 0.0001
+
+def test_compare_to_null_numbers_twosided():
+    distribution = np.arange(-5, 11, 1)
+    diff = 7
+    alt = "two-sided"
+    pval = compare_to_null(distribution, diff, alternative=alt)
+    correct_pval = .25
+    assert pval == correct_pval
+
+def test_compare_to_null_norm_twosided():
+    distribution = np.random.normal(0,10,1000)
+    diff = 10
+    alt = "two-sided"
+    pval = compare_to_null(distribution, diff, alternative=alt)
+    correct_pval = np.sum(np.abs(distribution) >= np.abs(diff))/len(distribution)
+    assert (pval == correct_pval).item()
+
+def test_compare_to_null_unniform_twosided():
+    distribution = np.random.normal(0,10,1000)
+    diff = 5
+    alt = "two-sided"
+    pval = compare_to_null(distribution, diff, alternative=alt)
+    correct_pval = np.sum(np.abs(distribution) >= np.abs(diff))/len(distribution)
+    assert (pval == correct_pval).item()
+
+def test_compare_to_null_unniform_greater():
+    distribution = np.random.uniform(0,10,1000)
+    diff = 5
+    alt = "greater"
+    pval = compare_to_null(distribution, diff, alternative=alt)
+    correct_pval = np.sum(distribution >= diff)/len(distribution)
+    assert (pval == correct_pval).item()
+
+def test_compare_to_null_norm_less():
+    distribution = np.random.normal(0,10,1000)
+    diff = 5
+    alt = "less"
+    pval = compare_to_null(distribution, diff, alternative=alt)
+    correct_pval = np.sum(distribution <= diff)/len(distribution)
+    assert (pval == correct_pval).item()
