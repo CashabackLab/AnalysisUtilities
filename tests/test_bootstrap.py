@@ -1,6 +1,9 @@
 import numpy as np
+from analysis_utilities import compare_to_null
 from analysis_utilities import bootstrap
+from analysis_utilities import bootstrap_linear_regression
 import pingouin as pg
+import scipy as sp
 
 alternatives = ["two-sided", "greater", "less"]
 
@@ -57,4 +60,70 @@ def test_nb_bootstrap_josh_boot_example():
                                 seed=20)
     assert np.abs(boot_pval - CORRECT_OUTPUT) < 0.005 
 
-    
+def test_nb_bootstrap_linear_regression_against_scipy():
+    x_data_1 = np.random.normal(0,10,1000)
+    y_data_1 = np.random.normal(0,10,1000)
+    x_data_2 = np.random.normal(0,10,1000)
+    y_data_2 = np.random.normal(0,10,1000)
+    data_group_1 = np.array([x_data_1, y_data_1]).T #2d array for group 1
+    data_group_2 = np.array([x_data_2, y_data_2]).T #2d array for group 2
+    boot_dict = bootstrap_linear_regression(data_group_1, data_group_2, M = int(1e6), 
+                                        paired = False, alternative = "two-sided")
+    sp_slope_1 = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').slope)
+    sp_intercept_1 = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').intercept)
+    sp_slope_2 = float(sp.stats.linregress(x_data_2, y_data_2, alternative='two-sided').slope)
+    sp_intercept_2 = float(sp.stats.linregress(x_data_2, y_data_2, alternative='two-sided').intercept)
+    assert round(boot_dict['m_1'],3) == round(sp_slope_1, 3) and round(boot_dict['m_2'], 3) == round(sp_slope_2, 3) and round(boot_dict['b_1'], 3) == round(sp_intercept_1, 3) and round(boot_dict['b_2'], 3) == round(sp_intercept_2, 3) 
+
+def test_nb_bootstrap_linear_regression_against_numpy():
+    x_data_1 = np.random.normal(0,10,1000)
+    y_data_1 = np.random.normal(0,10,1000)
+    x_data_2 = np.random.normal(0,10,1000)
+    y_data_2 = np.random.normal(0,10,1000)
+    data_group_1 = np.array([x_data_1, y_data_1]).T #2d array for group 1
+    data_group_2 = np.array([x_data_2, y_data_2]).T #2d array for group 2
+    boot_dict = bootstrap_linear_regression(data_group_1, data_group_2, M = int(1e6), 
+                                        paired = False, alternative = "two-sided")
+    np_slope_1, np_intercept_1 = np.polyfit(x_data_1, y_data_1, 1)
+    np_slope_2, np_intercept_2 = np.polyfit(x_data_2, y_data_2, 1)
+    assert round(boot_dict['m_1'],3) == round(np_slope_1, 3) and round(boot_dict['m_2'], 3) == round(np_slope_2, 3) and round(boot_dict['b_1'], 3) == round(np_intercept_1, 3) and round(boot_dict['b_2'], 3) == round(np_intercept_2, 3)
+
+def test_compare_to_null_numbers_twosided():
+    distribution = np.arange(-5, 11, 1)
+    diff = 7
+    alt = "two-sided"
+    pval = compare_to_null(distribution, diff, alternative=alt)
+    correct_pval = .25
+    assert pval == correct_pval
+
+def test_compare_to_null_norm_twosided():
+    distribution = np.random.normal(0,10,1000)
+    diff = 10
+    alt = "two-sided"
+    pval = compare_to_null(distribution, diff, alternative=alt)
+    correct_pval = np.sum(np.abs(distribution) >= np.abs(diff))/len(distribution)
+    assert (pval == correct_pval).item()
+
+def test_compare_to_null_unniform_twosided():
+    distribution = np.random.normal(0,10,1000)
+    diff = 5
+    alt = "two-sided"
+    pval = compare_to_null(distribution, diff, alternative=alt)
+    correct_pval = np.sum(np.abs(distribution) >= np.abs(diff))/len(distribution)
+    assert (pval == correct_pval).item()
+
+def test_compare_to_null_unniform_greater():
+    distribution = np.random.uniform(0,10,1000)
+    diff = 5
+    alt = "greater"
+    pval = compare_to_null(distribution, diff, alternative=alt)
+    correct_pval = np.sum(distribution >= diff)/len(distribution)
+    assert (pval == correct_pval).item()
+
+def test_compare_to_null_norm_less():
+    distribution = np.random.normal(0,10,1000)
+    diff = 5
+    alt = "less"
+    pval = compare_to_null(distribution, diff, alternative=alt)
+    correct_pval = np.sum(distribution <= diff)/len(distribution)
+    assert (pval == correct_pval).item()
