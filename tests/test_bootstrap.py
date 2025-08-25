@@ -1,5 +1,6 @@
 import numpy as np
 from analysis_utilities import compare_to_null
+from analysis_utilities import linear_regression_func
 from analysis_utilities import bootstrap
 from analysis_utilities import bootstrap_linear_regression
 import pingouin as pg
@@ -60,33 +61,27 @@ def test_nb_bootstrap_josh_boot_example():
                                 seed=20)
     assert np.abs(boot_pval - CORRECT_OUTPUT) < 0.005 
 
-def test_nb_bootstrap_linear_regression_against_scipy():
-    x_data_1 = np.random.normal(0,10,1000)
-    y_data_1 = np.random.normal(0,10,1000)
-    x_data_2 = np.random.normal(0,10,1000)
-    y_data_2 = np.random.normal(0,10,1000)
-    data_group_1 = np.array([x_data_1, y_data_1]).T #2d array for group 1
-    data_group_2 = np.array([x_data_2, y_data_2]).T #2d array for group 2
-    boot_dict = bootstrap_linear_regression(data_group_1, data_group_2, M = int(1e6), 
-                                        paired = False, alternative = "two-sided")
-    sp_slope_1 = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').slope)
-    sp_intercept_1 = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').intercept)
-    sp_slope_2 = float(sp.stats.linregress(x_data_2, y_data_2, alternative='two-sided').slope)
-    sp_intercept_2 = float(sp.stats.linregress(x_data_2, y_data_2, alternative='two-sided').intercept)
-    assert round(boot_dict['m_1'],3) == round(sp_slope_1, 3) and round(boot_dict['m_2'], 3) == round(sp_slope_2, 3) and round(boot_dict['b_1'], 3) == round(sp_intercept_1, 3) and round(boot_dict['b_2'], 3) == round(sp_intercept_2, 3) 
-
 def test_nb_bootstrap_linear_regression_against_numpy():
-    x_data_1 = np.random.normal(0,10,1000)
-    y_data_1 = np.random.normal(0,10,1000)
-    x_data_2 = np.random.normal(0,10,1000)
-    y_data_2 = np.random.normal(0,10,1000)
-    data_group_1 = np.array([x_data_1, y_data_1]).T #2d array for group 1
-    data_group_2 = np.array([x_data_2, y_data_2]).T #2d array for group 2
-    boot_dict = bootstrap_linear_regression(data_group_1, data_group_2, M = int(1e6), 
-                                        paired = False, alternative = "two-sided")
-    np_slope_1, np_intercept_1 = np.polyfit(x_data_1, y_data_1, 1)
-    np_slope_2, np_intercept_2 = np.polyfit(x_data_2, y_data_2, 1)
-    assert round(boot_dict['m_1'],3) == round(np_slope_1, 3) and round(boot_dict['m_2'], 3) == round(np_slope_2, 3) and round(boot_dict['b_1'], 3) == round(np_intercept_1, 3) and round(boot_dict['b_2'], 3) == round(np_intercept_2, 3)
+    m_1, b_1 = -20, 3.14
+
+    x_data_1 = np.arange(0,21)
+    y_data_1 = (m_1 * x_data_1) + b_1
+
+    test_m, test_b = linear_regression_func(x_data_1, y_data_1)
+    np_slope, np_intercept = np.polyfit(x_data_1, y_data_1, 1)
+    assert abs(test_m - np_slope) < 0.0001 and abs(test_b - np_intercept) < 0.0001
+
+def test_nb_bootstrap_linear_regression_against_scipy():
+    m_1, b_1 = 10, 77
+
+    x_data_1 = np.arange(0,21)
+    y_data_1 = (m_1 * x_data_1) + b_1
+
+    test_m, test_b = linear_regression_func(x_data_1, y_data_1)
+    sp_slope = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').slope)
+    sp_intercept = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').intercept)
+     
+    assert abs(test_m - sp_slope) < 0.0001 and abs(test_b - sp_intercept) < 0.0001
 
 def test_compare_to_null_numbers_twosided():
     distribution = np.arange(-5, 11, 1)

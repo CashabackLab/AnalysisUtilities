@@ -5,6 +5,7 @@
 __version__ = "0.6.21"
 
 from .stats.Bootstrap import compare_to_null
+from .stats.Bootstrap import linear_regression_func
 from .stats.Bootstrap import bootstrap
 from .stats.Bootstrap import bootstrap_linear_regression
 from .stats.Grubbs import grubbs
