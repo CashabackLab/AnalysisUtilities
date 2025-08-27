@@ -2,7 +2,7 @@
 #from . import custom_statistics
 # from.custom_statistics import *
 
-__version__ = "0.6.22"
+__version__ = "0.6.23"
 
 from .stats.Bootstrap import compare_to_null
 from .stats.Bootstrap import linear_regression_func
