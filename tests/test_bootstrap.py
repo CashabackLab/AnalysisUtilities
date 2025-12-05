@@ -1,8 +1,9 @@
 import numpy as np
 from analysis_utilities import compare_to_null
 from analysis_utilities import linear_regression_func
+from analysis_utilities import sigmoid_func
+from analysis_utilities import quadratic_func
 from analysis_utilities import bootstrap
-from analysis_utilities import bootstrap_linear_regression
 import pingouin as pg
 import scipy as sp
 
@@ -80,8 +81,68 @@ def test_nb_bootstrap_linear_regression_against_scipy():
     test_m, test_b = linear_regression_func(x_data_1, y_data_1)
     sp_slope = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').slope)
     sp_intercept = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').intercept)
-     
+    
     assert abs(test_m - sp_slope) < 0.0001 and abs(test_b - sp_intercept) < 0.0001
+
+def test_sigmoid_fit0():
+    known_weight, known_bias = 10, -5
+
+    x = np.arange(0, 1, .001)
+    known_sigmoid = 1 / (1 + np.exp(-(known_weight * x + known_bias))) 
+
+    test_m, test_b = sigmoid_func(x, known_sigmoid)
+    assert abs(test_m - known_weight) < 0.0001 and abs(test_b - known_bias) < 0.0001
+
+def test_sigmoid_fit1():
+    known_weight, known_bias = -10, -5
+
+    x = np.arange(0, 1, .001)
+    known_sigmoid = 1 / (1 + np.exp(-(known_weight * x + known_bias))) 
+
+    test_m, test_b = sigmoid_func(x, known_sigmoid)
+    assert abs(test_m - known_weight) < 0.0001 and abs(test_b - known_bias) < 0.0001
+
+def test_sigmoid_fit3():
+    known_weight, known_bias = -10, 5
+
+    x = np.arange(0, 1, .001)
+    known_sigmoid = 1 / (1 + np.exp(-(known_weight * x + known_bias))) 
+
+    test_m, test_b = sigmoid_func(x, known_sigmoid)
+    assert abs(test_m - known_weight) < 0.0001 and abs(test_b - known_bias) < 0.0001
+
+def test_sigmoid_fit4():
+    known_weight, known_bias = -1, 5
+
+    x = np.arange(-5, 16, .001)
+    known_sigmoid = 1 / (1 + np.exp(-(known_weight * x + known_bias))) 
+
+    test_m, test_b = sigmoid_func(x, known_sigmoid)
+    assert abs(test_m - known_weight) < 0.0001 and abs(test_b - known_bias) < 0.0001
+
+def test_quadratic_fit0():
+    x = np.arange(-5, 16, .001)
+    a_coeff, b_coeff, c_coeff = -3, 2, 7
+    y = a_coeff*x**2 + b_coeff*x + c_coeff
+
+    a, b, c= quadratic_func(x, y)
+    assert abs(a_coeff - a) < 0.0001 and abs(b_coeff - b) < 0.0001 and abs(c_coeff - c) < 0.0001
+
+def test_quadratic_fit1():
+    x = np.arange(5, 26, .001)
+    a_coeff, b_coeff, c_coeff = 13, 2, -7
+    y = a_coeff*x**2 + b_coeff*x + c_coeff
+
+    a, b, c = quadratic_func(x, y)
+    assert abs(a_coeff - a) < 0.0001 and abs(b_coeff - b) < 0.0001 and abs(c_coeff - c) < 0.0001
+
+def test_quadratic_fit0():
+    x = np.arange(5, 26, .001)
+    a_coeff, b_coeff, c_coeff = 11, -11, -6
+    y = a_coeff*x**2 + b_coeff*x + c_coeff
+
+    a, b, c = quadratic_func(x, y)
+    assert abs(a_coeff - a) < 0.0001 and abs(b_coeff - b) < 0.0001 and abs(c_coeff - c) < 0.0001
 
 def test_compare_to_null_numbers_twosided():
     distribution = np.arange(-5, 11, 1)
