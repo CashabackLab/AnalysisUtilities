@@ -180,6 +180,7 @@ def sigmoid_func(data_x, data_y_temp):
 
 @nb.jit
 def quadratic_func(data_x, data_y):
+    # https://math.stackexchange.com/questions/1687737/least-squares-fitting-quadratic-equation-to-a-set-of-points
     n = len(data_x)
     x_sum = np.sum(data_x)
     x_squared_sum = np.sum(data_x**2)
@@ -533,7 +534,7 @@ def bootstrap_quadratic(data_group_1, data_group_2, calc_function=quadratic_func
         if data_group_1.shape != data_group_2.shape:
             warnings.warn("Sample sizes not the same (data_group_1 shape and data_group_2 shape are not the same).", UserWarning)
             
-    final_pval_a, returned_distribution_a, final_pval_b, returned_distribution_b, final_pval_c, returned_distribution_c, group_1_resampled_a, group_1_resampled_b, group_1_resampled_c, group_2_resampled_a, group_2_resampled_b, group_2_resampled_c = _nb_bootstrap_slopes(data_group_1, data_group_2, 
+    final_pval_a, returned_distribution_a, final_pval_b, returned_distribution_b, final_pval_c, returned_distribution_c, group_1_resampled_a, group_1_resampled_b, group_1_resampled_c, group_2_resampled_a, group_2_resampled_b, group_2_resampled_c = _nb_bootstrap_quadratic(data_group_1, data_group_2, 
                                                                                     calc_function, M = M, 
                                                                                     paired = paired, 
                                                                                     alternative = alternative, 
