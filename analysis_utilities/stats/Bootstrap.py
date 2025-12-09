@@ -149,27 +149,26 @@ def bootstrap(data1, data2,
 
 @nb.jit
 def linear_regression_func(data_x, data_y):
-    n = len(data_x)
+    n = np.shape(data_x)[1]
 
     # https://www.geeksforgeeks.org/maths/linear-regression-formula/
-    sum_x = np.sum(data_x)
-    sum_y = np.sum(data_y)
-    sum_xy = np.sum(data_x*data_y)
-    sum_x_squared = np.sum(data_x**2)
-    
+    sum_x = np.sum(data_x, axis=1)
+    sum_y = np.sum(data_y, axis=1)
+    sum_xy = np.sum(data_x*data_y, axis=1)
+    sum_x_squared = np.sum(data_x**2, axis=1)
+
     denominator = (n*sum_x_squared) - sum_x**2
 
-    if denominator == 0:
+    if 0 in denominator:
         raise ValueError("denominator calculation is 0, denominator set to nan")
         # return np.nan, np.nan
         # denominator = np.nan
 
     numerator_m = (n*sum_xy) - (sum_x*sum_y)
     numerator_b = (sum_y * sum_x_squared) - (sum_x * sum_xy)
- 
+
     m = numerator_m/denominator
     b = numerator_b/denominator
-
     return m, b
 
 @nb.jit
@@ -224,7 +223,7 @@ def _nb_bootstrap_quadratic(
     data_len = len(data_group_1)
     
     # create a bucket with all data thrown inside
-    pooled_data = np.concatenate((data_group_1, data_group_2), axis=0)
+    pooled_data = np.concatenate((data_group_1, data_group_2), axis=1)
 
     # Recreate the two groups by sampling without replacement
     for i in nb.prange(M): 
@@ -298,7 +297,7 @@ def _nb_bootstrap_slopes(
     data_len = len(data_group_1)
     
     # create a bucket with all data thrown inside
-    pooled_data = np.concatenate((data_group_1, data_group_2), axis=0)
+    pooled_data = np.concatenate((data_group_1, data_group_2), axis=1)
 
     # Recreate the two groups by sampling without replacement
     for i in nb.prange(M): 
