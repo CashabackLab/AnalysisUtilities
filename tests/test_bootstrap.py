@@ -3,7 +3,6 @@ import numpy as np
 from analysis_utilities import compare_to_null
 from analysis_utilities import linear_regression_func
 from analysis_utilities import sigmoid_func
-from analysis_utilities import quadratic_func
 from analysis_utilities import bootstrap
 import pingouin as pg
 import scipy as sp
@@ -120,30 +119,6 @@ def test_sigmoid_fit4():
 
     test_m, test_b = sigmoid_func(x, known_sigmoid)
     assert abs(test_m - known_weight) < 0.0001 and abs(test_b - known_bias) < 0.0001
-
-def test_quadratic_fit0():
-    x = np.arange(-5, 16, .001)
-    a_coeff, b_coeff, c_coeff = -3, 2, 7
-    y = a_coeff*x**2 + b_coeff*x + c_coeff
-
-    a, b, c= quadratic_func(x, y)
-    assert abs(a_coeff - a) < 0.0001 and abs(b_coeff - b) < 0.0001 and abs(c_coeff - c) < 0.0001
-
-def test_quadratic_fit1():
-    x = np.arange(5, 26, .001)
-    a_coeff, b_coeff, c_coeff = 13, 2, -7
-    y = a_coeff*x**2 + b_coeff*x + c_coeff
-
-    a, b, c = quadratic_func(x, y)
-    assert abs(a_coeff - a) < 0.0001 and abs(b_coeff - b) < 0.0001 and abs(c_coeff - c) < 0.0001
-
-def test_quadratic_fit0():
-    x = np.arange(5, 26, .001)
-    a_coeff, b_coeff, c_coeff = 11, -11, -6
-    y = a_coeff*x**2 + b_coeff*x + c_coeff
-
-    a, b, c = quadratic_func(x, y)
-    assert abs(a_coeff - a) < 0.0001 and abs(b_coeff - b) < 0.0001 and abs(c_coeff - c) < 0.0001
 
 def test_compare_to_null_numbers_twosided():
     distribution = np.arange(-5, 11, 1)
