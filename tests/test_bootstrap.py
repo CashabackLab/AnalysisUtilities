@@ -1,3 +1,4 @@
+# %%
 import numpy as np
 from analysis_utilities import compare_to_null
 from analysis_utilities import linear_regression_func
@@ -65,29 +66,29 @@ def test_nb_bootstrap_josh_boot_example():
 def test_nb_bootstrap_linear_regression_against_numpy():
     m_1, b_1 = -20, 3.14
 
-    x_data_1 = np.arange(0,21)
+    x_data_1 = np.array([np.arange(0,21).tolist()]*5)
     y_data_1 = (m_1 * x_data_1) + b_1
 
     test_m, test_b = linear_regression_func(x_data_1, y_data_1)
-    np_slope, np_intercept = np.polyfit(x_data_1, y_data_1, 1)
+    np_slope, np_intercept = np.polyfit(x_data_1.ravel(), y_data_1.ravel(), 1)
     assert abs(test_m - np_slope) < 0.0001 and abs(test_b - np_intercept) < 0.0001
 
 def test_nb_bootstrap_linear_regression_against_scipy():
     m_1, b_1 = 10, 77
 
-    x_data_1 = np.arange(0,21)
+    x_data_1 = np.array([np.arange(0,21).tolist()]*5)
     y_data_1 = (m_1 * x_data_1) + b_1
 
     test_m, test_b = linear_regression_func(x_data_1, y_data_1)
-    sp_slope = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').slope)
-    sp_intercept = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').intercept)
+    sp_slope = float(sp.stats.linregress(x_data_1.ravel(), y_data_1.ravel(), alternative='two-sided').slope)
+    sp_intercept = float(sp.stats.linregress(x_data_1.ravel(), y_data_1.ravel(), alternative='two-sided').intercept)
     
     assert abs(test_m - sp_slope) < 0.0001 and abs(test_b - sp_intercept) < 0.0001
 
 def test_sigmoid_fit0():
     known_weight, known_bias = 10, -5
 
-    x = np.arange(0, 1, .001)
+    x = np.array([np.arange(0, 1, .001).tolist()]*5)
     known_sigmoid = 1 / (1 + np.exp(-(known_weight * x + known_bias))) 
 
     test_m, test_b = sigmoid_func(x, known_sigmoid)
@@ -96,7 +97,7 @@ def test_sigmoid_fit0():
 def test_sigmoid_fit1():
     known_weight, known_bias = -10, -5
 
-    x = np.arange(0, 1, .001)
+    x = np.array([np.arange(0, 1, .001).tolist()]*5)
     known_sigmoid = 1 / (1 + np.exp(-(known_weight * x + known_bias))) 
 
     test_m, test_b = sigmoid_func(x, known_sigmoid)
@@ -105,7 +106,7 @@ def test_sigmoid_fit1():
 def test_sigmoid_fit3():
     known_weight, known_bias = -10, 5
 
-    x = np.arange(0, 1, .001)
+    x = np.array([np.arange(0, 1, .001).tolist()]*5)
     known_sigmoid = 1 / (1 + np.exp(-(known_weight * x + known_bias))) 
 
     test_m, test_b = sigmoid_func(x, known_sigmoid)
@@ -114,7 +115,7 @@ def test_sigmoid_fit3():
 def test_sigmoid_fit4():
     known_weight, known_bias = -1, 5
 
-    x = np.arange(-5, 16, .001)
+    x = np.array([np.arange(-5, 16, .001).tolist()]*5)
     known_sigmoid = 1 / (1 + np.exp(-(known_weight * x + known_bias))) 
 
     test_m, test_b = sigmoid_func(x, known_sigmoid)
