@@ -25,7 +25,7 @@ def compare_to_null(results_distribution, original_value_diff, alternative):
         # returned_distribution = results_distribution + abs(original_value_diff)
     else:
         raise ValueError("alternative must be \"two-sided\", \"greater\", or \"less\"")
-    
+
     final_pval = p_val / len(results_distribution)
 
     return final_pval
@@ -148,7 +148,7 @@ def bootstrap(data1, data2,
         return p_val
 
 @nb.jit
-def linear_regression_func(x, y):
+def linear_regression_func(x, y, round=True):
     data_x = nb_nanmean(x, axis=0)
     data_y = nb_nanmean(y, axis=0)
     n = len(data_x)
@@ -170,7 +170,12 @@ def linear_regression_func(x, y):
 
     m = numerator_m/denominator
     b = numerator_b/denominator
-    return m, b
+
+    # we rounded bc floating point errors when original values are very similar to each other
+    if round:
+        return np.round(m, 10), np.round(b,10) 
+    else:
+        return m, b
 
 @nb.jit
 def sigmoid_func(data_x, data_y_temp):
@@ -188,15 +193,16 @@ def _nb_bootstrap_slopes(
 ): 
     
     # create empty arrays to store results
-    results_store_slopes = np.empty(M) * np.nan
-    results_store_intercepts = np.empty(M) * np.nan
-    group_1_resampled_slopes = np.empty(M) * np.nan
-    group_2_resampled_slopes = np.empty(M) * np.nan
-    group_1_resampled_intercepts = np.empty(M) * np.nan
-    group_2_resampled_intercepts = np.empty(M) * np.nan
+    results_store_slopes = np.empty(M, dtype=float) * np.nan
+    results_store_intercepts = np.empty(M, dtype=float) * np.nan
+    group_1_resampled_slopes = np.empty(M, dtype=float) * np.nan
+    group_2_resampled_slopes = np.empty(M, dtype=float) * np.nan
+    group_1_resampled_intercepts = np.empty(M, dtype=float) * np.nan
+    group_2_resampled_intercepts = np.empty(M, dtype=float) * np.nan
     
     # create a bucket with all data thrown inside
     pooled_data = np.concatenate((data_group_1, data_group_2), axis=1)
+    # 
     n_pooled = np.shape(pooled_data)[1]
     data_len = int(n_pooled/2)
     
@@ -211,8 +217,8 @@ def _nb_bootstrap_slopes(
         resampled_data = pooled_data[:,reordered_list_idx]
         
         # separate the resampled data into two groups
-        data_group_1_resample = resampled_data[:,:data_len] #up to number of points in data1
-        data_group_2_resample = resampled_data[:,data_len:] #the rest are in data2
+        data_group_1_resample = resampled_data[:,:data_len,:] #up to number of points in data1
+        data_group_2_resample = resampled_data[:,data_len:,:] #the rest are in data2
 
         # calculate slope and y-intercept using the resampled data
         m_1, b_1 = calc_function(data_group_1_resample[:,:][0], data_group_1_resample[:,:][1])
@@ -235,8 +241,8 @@ def _nb_bootstrap_slopes(
 
     # Center the results on 0; technically don't need to do this for between (only paired), since
     # it will already be centered on zero (given enough bootstraps)
-    centered_results_m = results_store_slopes - np.nanmean(results_store_slopes)
-    centered_results_b = results_store_intercepts - np.nanmean(results_store_intercepts)
+    centered_results_m = results_store_slopes - nb_nanmedian(results_store_slopes, axis=1)
+    centered_results_b = results_store_intercepts - nb_nanmedian(results_store_intercepts, axis=1)
 
     final_pval_m = compare_to_null(centered_results_m, original_m_diff, alternative)
     final_pval_b = compare_to_null(centered_results_b, original_b_diff, alternative)
@@ -271,7 +277,11 @@ def bootstrap_linear_regression(data_group_1, data_group_2, calc_function=linear
     test = {"mean", "median"} #compares either differences in means or median
     seed = int #modifies the seed used in the random number generator
     '''
-    
+    assert data_group_1.ndim == 3
+    # at least two conditions to fit
+    assert data_group_1.shape[2] >= 2
+    # make sure that there is an x and y value 
+    assert data_group_1.shape[0] == 2 
     # Check sample sizes
     if paired:
         assert data_group_1.shape == data_group_2.shape
@@ -310,6 +320,11 @@ def bootstrap_sigmoid(data_group_1, data_group_2, calc_function=sigmoid_func,
     In order to test a data set against zero, paired == True should be selected, and the second data set 
     will be zeros of the same length as the first data set. This will generate a null distribution for   
     just the first data set.
+
+    data_group_1 = np.ndarray
+    -axis 0 = x and y
+    -axis 1 = # of subjects in group
+    -axis 2 = # of conditions (should be at least 2)
     
     M = float64 # Number of iterations
     paired = {True, False}
@@ -318,8 +333,15 @@ def bootstrap_sigmoid(data_group_1, data_group_2, calc_function=sigmoid_func,
     return_distribution {True, False} #returns the bootstrapped distribution
     test = {"mean", "median"} #compares either differences in means or median
     seed = int #modifies the seed used in the random number generator
+    
     '''
     
+    assert data_group_1.ndim == 3
+    # at least two conditions to fit
+    assert data_group_1.shape[2] >= 2
+    # make sure that there is an x and y value 
+    assert data_group_1.shape[0] == 2 
+
     # Check sample sizes
     if paired:
         assert data_group_1.shape == data_group_2.shape
