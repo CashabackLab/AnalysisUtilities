@@ -25,7 +25,7 @@ def compare_to_null(results_distribution, original_value_diff, alternative):
         # returned_distribution = results_distribution + abs(original_value_diff)
     else:
         raise ValueError("alternative must be \"two-sided\", \"greater\", or \"less\"")
-    
+
     final_pval = p_val / len(results_distribution)
 
     return final_pval
@@ -148,15 +148,16 @@ def bootstrap(data1, data2,
         return p_val
 
 @nb.jit
-def linear_regression_func(data_x, data_y):
+def linear_regression_func(x, y, round=True):
+    data_x = nb_nanmean(x, axis=0)
+    data_y = nb_nanmean(y, axis=0)
     n = len(data_x)
-
     # https://www.geeksforgeeks.org/maths/linear-regression-formula/
     sum_x = np.sum(data_x)
     sum_y = np.sum(data_y)
     sum_xy = np.sum(data_x*data_y)
     sum_x_squared = np.sum(data_x**2)
-    
+
     denominator = (n*sum_x_squared) - sum_x**2
 
     if denominator == 0:
@@ -166,17 +167,25 @@ def linear_regression_func(data_x, data_y):
 
     numerator_m = (n*sum_xy) - (sum_x*sum_y)
     numerator_b = (sum_y * sum_x_squared) - (sum_x * sum_xy)
- 
+
     m = numerator_m/denominator
     b = numerator_b/denominator
 
-    return m, b
+    # we rounded bc floating point errors when original values are very similar to each other
+    if round:
+        return np.round(m, 10), np.round(b,10) 
+    else:
+        return m, b
 
-
+@nb.jit
+def sigmoid_func(data_x, data_y_temp):
+    data_y = -np.log((1/data_y_temp)-1)
+    return linear_regression_func(data_x, data_y)
 
 @nb.njit(parallel = True)
-def _nb_bootstrap_linear_regression(
+def _nb_bootstrap_slopes(
     data_group_1, data_group_2,
+    calc_function, 
     M:int, 
     paired:bool, 
     alternative:str, 
@@ -184,35 +193,36 @@ def _nb_bootstrap_linear_regression(
 ): 
     
     # create empty arrays to store results
-    results_store_slopes = np.empty(M) * np.nan
-    results_store_intercepts = np.empty(M) * np.nan
-    group_1_resampled_slopes = np.empty(M) * np.nan
-    group_2_resampled_slopes = np.empty(M) * np.nan
-    group_1_resampled_intercepts = np.empty(M) * np.nan
-    group_2_resampled_intercepts = np.empty(M) * np.nan
-    
-    data_len = len(data_group_1)
+    results_store_slopes = np.empty(M, dtype=float) * np.nan
+    results_store_intercepts = np.empty(M, dtype=float) * np.nan
+    group_1_resampled_slopes = np.empty(M, dtype=float) * np.nan
+    group_2_resampled_slopes = np.empty(M, dtype=float) * np.nan
+    group_1_resampled_intercepts = np.empty(M, dtype=float) * np.nan
+    group_2_resampled_intercepts = np.empty(M, dtype=float) * np.nan
     
     # create a bucket with all data thrown inside
-    pooled_data = np.concatenate((data_group_1, data_group_2), axis=0)
-
+    pooled_data = np.concatenate((data_group_1, data_group_2), axis=1)
+    # 
+    n_pooled = np.shape(pooled_data)[1]
+    data_len = int(n_pooled/2)
+    
     # Recreate the two groups by sampling without replacement
     for i in nb.prange(M): 
     # for i in range(M): 
         if seed != None:
             np.random.seed(int((i+1) * seed))
         # populate a randomized list of indices to resample the two groups
-        reordered_list_idx = np.random.choice(len(pooled_data), size=len(pooled_data), replace = False)
+        reordered_list_idx = np.random.choice(n_pooled, size=n_pooled, replace = False)
         # reorder the bucket of groups, keeping their respective x and y values together
-        resampled_data = pooled_data[reordered_list_idx]
+        resampled_data = pooled_data[:,reordered_list_idx]
         
         # separate the resampled data into two groups
-        data_group_1_resample = resampled_data[:data_len] #up to number of points in data1
-        data_group_2_resample = resampled_data[data_len:] #the rest are in data2
+        data_group_1_resample = resampled_data[:,:data_len,:] #up to number of points in data1
+        data_group_2_resample = resampled_data[:,data_len:,:] #the rest are in data2
 
         # calculate slope and y-intercept using the resampled data
-        m_1, b_1 = linear_regression_func(data_group_1_resample[:,0], data_group_1_resample[:,1])
-        m_2, b_2 = linear_regression_func(data_group_2_resample[:,0], data_group_2_resample[:,1])
+        m_1, b_1 = calc_function(data_group_1_resample[:,:][0], data_group_1_resample[:,:][1])
+        m_2, b_2 = calc_function(data_group_2_resample[:,:][0], data_group_2_resample[:,:][1])
 
         # store the slope and y-intercept differences between groups
         group_1_resampled_slopes[i] = m_1
@@ -223,16 +233,16 @@ def _nb_bootstrap_linear_regression(
         results_store_intercepts[i] = b_1 - b_2
 
     #get original slope and intercept differences
-    original_m_1, original_b_1 = linear_regression_func(data_group_1[:,0], data_group_1[:,1])
-    original_m_2, original_b_2 = linear_regression_func(data_group_2[:,0], data_group_2[:,1])
+    original_m_1, original_b_1 = calc_function(data_group_1[:,:][0], data_group_1[:,:][1])
+    original_m_2, original_b_2 = calc_function(data_group_2[:,:][0], data_group_2[:,:][1])
     # differences of the original data's slopes and y-intercepts
     original_m_diff = original_m_1 - original_m_2
     original_b_diff = original_b_1 - original_b_2
 
     # Center the results on 0; technically don't need to do this for between (only paired), since
     # it will already be centered on zero (given enough bootstraps)
-    centered_results_m = results_store_slopes - np.nanmean(results_store_slopes)
-    centered_results_b = results_store_intercepts - np.nanmean(results_store_intercepts)
+    centered_results_m = results_store_slopes - nb_nanmedian(results_store_slopes, axis=1)
+    centered_results_b = results_store_intercepts - nb_nanmedian(results_store_intercepts, axis=1)
 
     final_pval_m = compare_to_null(centered_results_m, original_m_diff, alternative)
     final_pval_b = compare_to_null(centered_results_b, original_b_diff, alternative)
@@ -240,14 +250,11 @@ def _nb_bootstrap_linear_regression(
     return final_pval_m, centered_results_m, final_pval_b, centered_results_b, group_1_resampled_slopes, group_2_resampled_slopes, group_1_resampled_intercepts, group_2_resampled_intercepts
 
 
-def bootstrap_linear_regression(data_group_1, data_group_2, 
+def bootstrap_linear_regression(data_group_1, data_group_2, calc_function=linear_regression_func,
               M:int = int(1e4), 
               paired:bool = False, 
               alternative:str = "two-sided",  
-              stat_type:str = "mean", 
-              return_distribution:bool = False, 
-              seed:int = None, 
-              **kwargs):
+              seed:int = None):
     ''' Performs a bootstrapped permutation test on our data. For a between test, will take two sets of 
     data and pool them. Two groups are then randomly sampled repetitively from this pool with replacement 
     and a mean difference is calculated for each set of two groups sampled. This will then produce M 
@@ -270,22 +277,11 @@ def bootstrap_linear_regression(data_group_1, data_group_2,
     test = {"mean", "median"} #compares either differences in means or median
     seed = int #modifies the seed used in the random number generator
     '''
-    
-    # # Select averaging function
-    # if stat_type == "mean":
-    #     avg_function = nb_nanmean
-    # elif stat_type == "median":
-    #     avg_function = nb_nanmedian
-    # else:
-    #     raise ValueError("stat_type should be 'mean' or 'median'")    
-    
-    # assert alternative in ["two-sided", "greater", "less"]
-    # #make sure data is in np.array format
-    # data1, data2 = np.array(data1), np.array(data2)
-    
-    # #make M an integer
-    # M = int(M)
-    
+    assert data_group_1.ndim == 3
+    # at least two conditions to fit
+    assert data_group_1.shape[2] >= 2
+    # make sure that there is an x and y value 
+    assert data_group_1.shape[0] == 2 
     # Check sample sizes
     if paired:
         assert data_group_1.shape == data_group_2.shape
@@ -293,8 +289,8 @@ def bootstrap_linear_regression(data_group_1, data_group_2,
         if data_group_1.shape != data_group_2.shape:
             warnings.warn("Sample sizes not the same (data_group_1 shape and data_group_2 shape are not the same).", UserWarning)
             
-    final_pval_m, returned_distribution_m, final_pval_b, returned_distribution_b, group_1_resampled_slopes, group_2_resampled_slopes, group_1_resampled_intercepts, group_2_resampled_intercepts = _nb_bootstrap_linear_regression(data_group_1, data_group_2, 
-                                                                                    M = M, 
+    final_pval_m, returned_distribution_m, final_pval_b, returned_distribution_b, group_1_resampled_slopes, group_2_resampled_slopes, group_1_resampled_intercepts, group_2_resampled_intercepts = _nb_bootstrap_slopes(data_group_1, data_group_2, 
+                                                                                    calc_function, M = M, 
                                                                                     paired = paired, 
                                                                                     alternative = alternative, 
                                                                                     seed = seed)
@@ -305,8 +301,63 @@ def bootstrap_linear_regression(data_group_1, data_group_2,
                  'resampled_slope_group2_distribution': group_2_resampled_slopes,
                  'resampled_intercept_group1_distribution': group_1_resampled_intercepts,
                  'resampled_intercept_group2_distribution': group_2_resampled_intercepts})
-        
-    # if return_distribution:
-    #     return p_val, distribution
-    # else:
-    #     return p_val
+
+def bootstrap_sigmoid(data_group_1, data_group_2, calc_function=sigmoid_func,
+              M:int = int(1e4), 
+              paired:bool = False, 
+              alternative:str = "two-sided",  
+              seed:int = None):
+    ''' Performs a bootstrapped permutation test on our data. For a between test, will take two sets of 
+    data and pool them. Two groups are then randomly sampled repetitively from this pool with replacement 
+    and a mean difference is calculated for each set of two groups sampled. This will then produce M 
+    bootstraps of our statistic (mean difference) and a numerical null distribution. The p-value is the 
+    proportion of the data more extreme (either one or two sided) than our original data samples test 
+    statistic (mean difference). 
+    
+    A paired test will resample from the pool of mean differences, and then center that distribution on 
+    zero given the assumption of the null (no mean difference).
+    
+    In order to test a data set against zero, paired == True should be selected, and the second data set 
+    will be zeros of the same length as the first data set. This will generate a null distribution for   
+    just the first data set.
+
+    data_group_1 = np.ndarray
+    -axis 0 = x and y
+    -axis 1 = # of subjects in group
+    -axis 2 = # of conditions (should be at least 2)
+    
+    M = float64 # Number of iterations
+    paired = {True, False}
+    alternative = {"two-sided", "greater", "less"} #data1 relative to data2, i.e.: data1 "greater" than 
+    data2. "two.sided" is also accepted
+    return_distribution {True, False} #returns the bootstrapped distribution
+    test = {"mean", "median"} #compares either differences in means or median
+    seed = int #modifies the seed used in the random number generator
+    
+    '''
+    
+    assert data_group_1.ndim == 3
+    # at least two conditions to fit
+    assert data_group_1.shape[2] >= 2
+    # make sure that there is an x and y value 
+    assert data_group_1.shape[0] == 2 
+
+    # Check sample sizes
+    if paired:
+        assert data_group_1.shape == data_group_2.shape
+    else:        
+        if data_group_1.shape != data_group_2.shape:
+            warnings.warn("Sample sizes not the same (data_group_1 shape and data_group_2 shape are not the same).", UserWarning)
+            
+    final_pval_m, returned_distribution_m, final_pval_b, returned_distribution_b, group_1_resampled_slopes, group_2_resampled_slopes, group_1_resampled_intercepts, group_2_resampled_intercepts = _nb_bootstrap_slopes(data_group_1, data_group_2, 
+                                                                                    calc_function, M = M, 
+                                                                                    paired = paired, 
+                                                                                    alternative = alternative, 
+                                                                                    seed = seed)
+    return dict({'slope_diff_pval': final_pval_m, 'intercept_diff_pval': final_pval_b,
+                 'slope_difference_distribution': returned_distribution_m,
+                 'intercept_difference_distribution': returned_distribution_b,
+                 'resampled_slope_group1_distribution': group_1_resampled_slopes,
+                 'resampled_slope_group2_distribution': group_2_resampled_slopes,
+                 'resampled_intercept_group1_distribution': group_1_resampled_intercepts,
+                 'resampled_intercept_group2_distribution': group_2_resampled_intercepts})

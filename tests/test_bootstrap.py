@@ -1,10 +1,17 @@
+# %%
 import numpy as np
 from analysis_utilities import compare_to_null
 from analysis_utilities import linear_regression_func
-from analysis_utilities import bootstrap
+from analysis_utilities import sigmoid_func
+from analysis_utilities import bootstrap_sigmoid
 from analysis_utilities import bootstrap_linear_regression
+from analysis_utilities import bootstrap
+from analysis_utilities import compare_to_null
+from analysis_utilities.utils import nb_nanmean, nb_nanmedian
 import pingouin as pg
 import scipy as sp
+import matplotlib.pyplot as plt
+
 
 alternatives = ["two-sided", "greater", "less"]
 
@@ -64,24 +71,122 @@ def test_nb_bootstrap_josh_boot_example():
 def test_nb_bootstrap_linear_regression_against_numpy():
     m_1, b_1 = -20, 3.14
 
-    x_data_1 = np.arange(0,21)
+    x_data_1 = np.array([np.arange(0,21).tolist()]*5)
     y_data_1 = (m_1 * x_data_1) + b_1
 
     test_m, test_b = linear_regression_func(x_data_1, y_data_1)
-    np_slope, np_intercept = np.polyfit(x_data_1, y_data_1, 1)
+    np_slope, np_intercept = np.polyfit(x_data_1.ravel(), y_data_1.ravel(), 1)
     assert abs(test_m - np_slope) < 0.0001 and abs(test_b - np_intercept) < 0.0001
 
 def test_nb_bootstrap_linear_regression_against_scipy():
     m_1, b_1 = 10, 77
 
-    x_data_1 = np.arange(0,21)
+    x_data_1 = np.array([np.arange(0,21).tolist()]*5)
     y_data_1 = (m_1 * x_data_1) + b_1
 
     test_m, test_b = linear_regression_func(x_data_1, y_data_1)
-    sp_slope = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').slope)
-    sp_intercept = float(sp.stats.linregress(x_data_1, y_data_1, alternative='two-sided').intercept)
-     
+    sp_slope = float(sp.stats.linregress(x_data_1.ravel(), y_data_1.ravel(), alternative='two-sided').slope)
+    sp_intercept = float(sp.stats.linregress(x_data_1.ravel(), y_data_1.ravel(), alternative='two-sided').intercept)
+    
     assert abs(test_m - sp_slope) < 0.0001 and abs(test_b - sp_intercept) < 0.0001
+
+def create_mock_linear_data(w_1, w_2, b_1, b_2, num_subjects=20, num_data_points=40):
+    x_1 = np.array([np.linspace(0, 1, num_data_points).tolist()]*num_subjects)
+    x_2 = np.array([np.linspace(0, 1, num_data_points).tolist()]*num_subjects)
+    y_1 = (w_1 * x_1) + b_1
+    y_2 = (w_2 * x_2) + b_2
+
+    data_group_1 = np.array([x_1, y_1])
+    data_group_2 = np.array([x_2, y_2])
+    return data_group_1,data_group_2
+
+def create_mock_sigmoid_data(w_1, w_2, b_1, b_2, num_subjects=20, num_data_points=40):
+    x_1 = np.array([np.linspace(0, 1, num_data_points).tolist()]*num_subjects)
+    x_2 = np.array([np.linspace(0, 1, num_data_points).tolist()]*num_subjects)
+    y_1 = 1 / (1 + np.exp(-(w_1 * x_1 + b_1))) 
+    y_2 = 1 / (1 + np.exp(-(w_2 * x_2 + b_2))) 
+
+    data_group_1 = np.array([x_1, y_1])
+    data_group_2 = np.array([x_2, y_2])
+    return data_group_1, data_group_2
+
+def test_linear_fit_bootstrap_w_same_and_b_same():
+    w_1, b_1 = 10, -3
+    w_2, b_2 = 10, -3
+    data_group_1, data_group_2 = create_mock_linear_data(w_1, w_2, b_1, b_2)
+    results_dict = bootstrap_linear_regression(data_group_1, data_group_2)
+    assert (results_dict['slope_diff_pval'] > 0.9) and (results_dict['intercept_diff_pval'] > 0.9)
+
+def test_linear_fit_bootstrap_w_diff_and_b_same():
+    w_1, b_1 = 8, -3
+    w_2, b_2 = 10, -3
+    data_group_1, data_group_2 = create_mock_linear_data(w_1, w_2, b_1, b_2)
+    results_dict = bootstrap_linear_regression(data_group_1, data_group_2)
+    assert (results_dict['slope_diff_pval'] < 0.1) and (results_dict['intercept_diff_pval'] > 0.9)
+
+def test_linear_fit_bootstrap_w_same_and_b_diff():
+    w_1, b_1 = 10, -3
+    w_2, b_2 = 10, -1
+    data_group_1, data_group_2 = create_mock_linear_data(w_1, w_2, b_1, b_2)
+    results_dict = bootstrap_linear_regression(data_group_1, data_group_2)
+    assert (results_dict['slope_diff_pval'] > 0.9) and (results_dict['intercept_diff_pval'] < 0.1)
+
+def test_sigmoid_bootstrap_w_same_and_b_same():
+    w_1, b_1 = 10, -3
+    w_2, b_2 = 10, -3
+    data_group_1,data_group_2 = create_mock_sigmoid_data(w_1, w_2, b_1, b_2)
+    results_dict = bootstrap_sigmoid(data_group_1,data_group_2)
+    assert (results_dict['slope_diff_pval'] > 0.9) and (results_dict['intercept_diff_pval'] > 0.9)
+
+def test_sigmoid_bootstrap_w_diff_and_b_same():
+    w_1, b_1 = 8, -3
+    w_2, b_2 = 10, -3
+    data_group_1,data_group_2 = create_mock_sigmoid_data(w_1, w_2, b_1, b_2)
+    results_dict = bootstrap_sigmoid(data_group_1,data_group_2)
+    assert (results_dict['slope_diff_pval'] < 0.1) and (results_dict['intercept_diff_pval'] > 0.9)
+
+def test_sigmoid_bootstrap_w_same_and_b_diff():
+    w_1, b_1 = 10, -1
+    w_2, b_2 = 10, -3
+    data_group_1,data_group_2 = create_mock_sigmoid_data(w_1, w_2, b_1, b_2)
+    results_dict = bootstrap_sigmoid(data_group_1,data_group_2)
+    assert (results_dict['slope_diff_pval'] > 0.9) and (results_dict['intercept_diff_pval'] < 0.1)
+
+def test_sigmoid_fit0():
+    known_weight, known_bias = 10, -5
+
+    x = np.array([np.arange(0, 1, .001).tolist()]*5)
+    known_sigmoid = 1 / (1 + np.exp(-(known_weight * x + known_bias))) 
+
+    test_m, test_b = sigmoid_func(x, known_sigmoid)
+    assert abs(test_m - known_weight) < 0.01 and abs(test_b - known_bias) < 0.0001
+
+def test_sigmoid_fit1():
+    known_weight, known_bias = -10, -5
+
+    x = np.array([np.arange(0, 1, .001).tolist()]*5)
+    known_sigmoid = 1 / (1 + np.exp(-(known_weight * x + known_bias))) 
+
+    test_m, test_b = sigmoid_func(x, known_sigmoid)
+    assert abs(test_m - known_weight) < 0.0001 and abs(test_b - known_bias) < 0.0001
+
+def test_sigmoid_fit3():
+    known_weight, known_bias = -10, 5
+
+    x = np.array([np.arange(0, 1, .001).tolist()]*5)
+    known_sigmoid = 1 / (1 + np.exp(-(known_weight * x + known_bias))) 
+
+    test_m, test_b = sigmoid_func(x, known_sigmoid)
+    assert abs(test_m - known_weight) < 0.0001 and abs(test_b - known_bias) < 0.0001
+
+def test_sigmoid_fit4():
+    known_weight, known_bias = -1, 5
+
+    x = np.array([np.arange(-5, 16, .001).tolist()]*5)
+    known_sigmoid = 1 / (1 + np.exp(-(known_weight * x + known_bias))) 
+
+    test_m, test_b = sigmoid_func(x, known_sigmoid)
+    assert abs(test_m - known_weight) < 0.0001 and abs(test_b - known_bias) < 0.0001
 
 def test_compare_to_null_numbers_twosided():
     distribution = np.arange(-5, 11, 1)
