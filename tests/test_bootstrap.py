@@ -98,7 +98,7 @@ def create_mock_linear_data(w_1, w_2, b_1, b_2, num_subjects=20, num_data_points
 
     data_group_1 = np.array([x_1, y_1])
     data_group_2 = np.array([x_2, y_2])
-    return bootstrap_linear_regression(data_group_1,data_group_2)
+    return data_group_1,data_group_2
 
 def create_mock_sigmoid_data(w_1, w_2, b_1, b_2, num_subjects=20, num_data_points=40):
     x_1 = np.array([np.linspace(0, 1, num_data_points).tolist()]*num_subjects)
@@ -108,42 +108,48 @@ def create_mock_sigmoid_data(w_1, w_2, b_1, b_2, num_subjects=20, num_data_point
 
     data_group_1 = np.array([x_1, y_1])
     data_group_2 = np.array([x_2, y_2])
-    return bootstrap_sigmoid(data_group_1,data_group_2)
+    return data_group_1, data_group_2
 
 def test_linear_fit_bootstrap_w_same_and_b_same():
     w_1, b_1 = 10, -3
     w_2, b_2 = 10, -3
-    results_dict = create_mock_linear_data(w_1, w_2, b_1, b_2)
+    data_group_1, data_group_2 = create_mock_linear_data(w_1, w_2, b_1, b_2)
+    results_dict = bootstrap_linear_regression(data_group_1, data_group_2)
     assert (results_dict['slope_diff_pval'] > 0.9) and (results_dict['intercept_diff_pval'] > 0.9)
 
 def test_linear_fit_bootstrap_w_diff_and_b_same():
     w_1, b_1 = 8, -3
     w_2, b_2 = 10, -3
-    results_dict = create_mock_linear_data(w_1, w_2, b_1, b_2)
+    data_group_1, data_group_2 = create_mock_linear_data(w_1, w_2, b_1, b_2)
+    results_dict = bootstrap_linear_regression(data_group_1, data_group_2)
     assert (results_dict['slope_diff_pval'] < 0.1) and (results_dict['intercept_diff_pval'] > 0.9)
 
 def test_linear_fit_bootstrap_w_same_and_b_diff():
     w_1, b_1 = 10, -3
     w_2, b_2 = 10, -1
-    results_dict = create_mock_linear_data(w_1, w_2, b_1, b_2)
+    data_group_1, data_group_2 = create_mock_linear_data(w_1, w_2, b_1, b_2)
+    results_dict = bootstrap_linear_regression(data_group_1, data_group_2)
     assert (results_dict['slope_diff_pval'] > 0.9) and (results_dict['intercept_diff_pval'] < 0.1)
 
 def test_sigmoid_bootstrap_w_same_and_b_same():
     w_1, b_1 = 10, -3
     w_2, b_2 = 10, -3
-    results_dict = create_mock_sigmoid_data(w_1, w_2, b_1, b_2)
+    data_group_1,data_group_2 = create_mock_sigmoid_data(w_1, w_2, b_1, b_2)
+    results_dict = bootstrap_sigmoid(data_group_1,data_group_2)
     assert (results_dict['slope_diff_pval'] > 0.9) and (results_dict['intercept_diff_pval'] > 0.9)
 
 def test_sigmoid_bootstrap_w_diff_and_b_same():
     w_1, b_1 = 8, -3
     w_2, b_2 = 10, -3
-    results_dict = create_mock_sigmoid_data(w_1, w_2, b_1, b_2)
+    data_group_1,data_group_2 = create_mock_sigmoid_data(w_1, w_2, b_1, b_2)
+    results_dict = bootstrap_sigmoid(data_group_1,data_group_2)
     assert (results_dict['slope_diff_pval'] < 0.1) and (results_dict['intercept_diff_pval'] > 0.9)
 
 def test_sigmoid_bootstrap_w_same_and_b_diff():
     w_1, b_1 = 10, -1
     w_2, b_2 = 10, -3
-    results_dict = create_mock_sigmoid_data(w_1, w_2, b_1, b_2)
+    data_group_1,data_group_2 = create_mock_sigmoid_data(w_1, w_2, b_1, b_2)
+    results_dict = bootstrap_sigmoid(data_group_1,data_group_2)
     assert (results_dict['slope_diff_pval'] > 0.9) and (results_dict['intercept_diff_pval'] < 0.1)
 
 def test_sigmoid_fit0():
