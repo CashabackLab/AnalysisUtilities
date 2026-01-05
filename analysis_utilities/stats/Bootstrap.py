@@ -45,8 +45,10 @@ def _nb_bootstrap(
     M = int(M)
     results = np.empty(M) * np.nan
 
-    if paired:        
-        #Want to resample from the distribution of paired differences with replacement
+    if paired:
+        # "Bootstrapped" Hypothesis Test (always with replacement). NOT a paired Permutation
+        # Test
+        # Want to resample from the distribution of paired differences with replacement
         paired_diff = data1 - data2
         data_len = paired_diff.shape[0]
         
@@ -59,8 +61,9 @@ def _nb_bootstrap(
         
         #create a bucket with all data thrown inside
         pooled_data = np.concatenate((data1,data2), axis=0)
-        
-        #Recreate the two groups by sampling without replacement
+
+        # Here, running a Permutation Test
+        # Recreate the two groups by sampling without replacement
         for i in nb.prange(M): 
             if seed != None:
                 rng.seed(int(i * seed))
@@ -205,7 +208,8 @@ def _nb_bootstrap_slopes(
     # 
     n_pooled = np.shape(pooled_data)[1]
     data_len = int(n_pooled/2)
-    
+
+    # Permutation (Between) Test for slopes
     # Recreate the two groups by sampling without replacement
     for i in nb.prange(M): 
     # for i in range(M): 
