@@ -283,7 +283,7 @@ def bootstrap_linear_regression(data_group_1, data_group_2, calc_function=linear
     '''
     assert data_group_1.ndim == 3
     # at least two conditions to fit
-    # assert data_group_1.shape[2] >= 2
+    assert data_group_1.shape[2] >= 2
     # make sure that there is an x and y value 
     assert data_group_1.shape[0] == 2 
     # Check sample sizes
